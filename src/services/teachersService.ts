@@ -1,0 +1,36 @@
+'use client'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7169";
+
+export interface ProfesorPayload {
+  email: string;
+  password: string;
+  nombre: string;
+  apellidoPaterno: string;
+  apellidoMaterno: string;
+  fechaNacimiento: string;
+  personaGeneroId: number;
+  especialidad: string;
+}
+
+export async function getTeachers(): Promise<any[]> {
+  const res = await fetch(`${API_URL}/api/Profesor`);
+  if (!res.ok) throw new Error(`Error al obtener profesores: ${res.statusText}`);
+  return res.json();
+}
+
+export async function createTeacher(data: ProfesorPayload): Promise<any> {
+  const res = await fetch(`${API_URL}/api/Profesor`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error al crear profesor: ${res.statusText}`);
+  }
+
+  return res.json();
+}

@@ -9,7 +9,7 @@ import Image from "next/image";
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { createTeacher } from '@/services/teachersService';
-import { TeacherResponse } from '@/types/TeacherResponse';
+import { TeacherResponse } from '@/modules/teachers/types/TeacherResponse';
 import InputField from '../InputField';
 
 const schema = z.object({

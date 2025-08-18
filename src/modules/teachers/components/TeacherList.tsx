@@ -1,40 +1,32 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { useTeachers } from '../hooks';
 import { DeleteTeacherModal } from './modals/DeleteTeacherModal';
 import type { TeacherResponse } from '../types/TeacherResponse';
-import { TeacherFormModal } from '../teachers.module';
-import type { Teacher } from '../types/Teacher';
+import type { TeacherPayload } from '../types/TeacherPayload';
+import { TeacherFormModal } from './modals/TeacherFormModal';
 
-interface TeacherListProps {
-  initialData?: TeacherResponse[];
-}
-
-export function TeacherList({ initialData = [] }: TeacherListProps) {
-  const router = useRouter();
+export function TeacherList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherResponse | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  const { 
-    teachers, 
-    loading, 
-    error, 
+  const {
+    teachers,
+    loading,
+    error,
     deleteTeacher,
-    updateFilters 
-  } = useTeachers({ searchQuery: searchTerm });
+  } = useTeachers();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    updateFilters({ searchQuery: value });
   };
 
   const handleEdit = (teacher: TeacherResponse) => {
@@ -50,7 +42,7 @@ export function TeacherList({ initialData = [] }: TeacherListProps) {
 
   const handleDeleteConfirm = async () => {
     if (!selectedTeacher) return;
-    
+
     try {
       await deleteTeacher(selectedTeacher.id);
       setIsDeleteModalOpen(false);
@@ -60,14 +52,35 @@ export function TeacherList({ initialData = [] }: TeacherListProps) {
     }
   };
 
-  const mapToTeacherFormData = (teacher: TeacherResponse): Teacher => ({
-    id: teacher.id.toString(),
-    name: teacher.persona?.nombre || '',
+  const filteredTeachers = useMemo(() => {
+    if (!searchTerm.trim()) return teachers;
+
+    const term = searchTerm.toLowerCase();
+    return teachers.filter(teacher =>
+    (teacher.persona?.nombre?.toLowerCase().includes(term) ||
+      teacher.persona?.apellidoPaterno?.toLowerCase().includes(term) ||
+      teacher.persona?.correoElectronico?.toLowerCase().includes(term) ||
+      teacher.especialidad?.toLowerCase().includes(term))
+    );
+  }, [teachers, searchTerm]);
+
+  const getFullName = (teacher: TeacherResponse) => {
+    return [
+      teacher.persona?.nombre,
+      teacher.persona?.apellidoPaterno,
+      teacher.persona?.apellidoMaterno
+    ].filter(Boolean).join(' ');
+  };
+
+  const mapToTeacherFormData = (teacher: TeacherResponse): TeacherPayload => ({
     email: teacher.persona?.correoElectronico || '',
-    phone: teacher.persona?.telefono || '',
-    subject: teacher.especialidad || '',
-    status: 'active', // Default status, adjust as needed
-    hireDate: new Date() // Default to current date, adjust as needed
+    password: '',
+    nombre: teacher.persona?.nombre || '',
+    apellidoPaterno: teacher.persona?.apellidoPaterno || '',
+    apellidoMaterno: teacher.persona?.apellidoMaterno || '',
+    fechaNacimiento: teacher.persona?.fechaNacimiento || new Date().toISOString().split('T')[0],
+    personaGeneroId: teacher.persona?.personaGeneroId || 1,
+    especialidad: teacher.especialidad || ''
   });
 
   const handleFormSubmit = () => {
@@ -108,7 +121,7 @@ export function TeacherList({ initialData = [] }: TeacherListProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Lista de Profesores</h2>
-        <Button 
+        <Button
           type="button"
           variant="default"
           onClick={() => {
@@ -147,7 +160,7 @@ export function TeacherList({ initialData = [] }: TeacherListProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {teachers.map((teacher) => (
+            {filteredTeachers.map((teacher) => (
               <TableRow key={teacher.id} className="hover:bg-gray-50">
                 <TableCell className="font-medium">
                   <div className="flex items-center">
@@ -155,42 +168,36 @@ export function TeacherList({ initialData = [] }: TeacherListProps) {
                       {teacher.persona?.nombre?.charAt(0)?.toUpperCase() || '?'}
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{teacher.persona?.nombre || 'Sin nombre'}</div>
-                      <div className="text-sm text-gray-500">{teacher.persona?.telefono || 'Sin teléfono'}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {getFullName(teacher) || 'Sin nombre'}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {teacher.persona?.telefono || 'Sin teléfono'}
+                      </div>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell className="text-sm text-gray-900">{teacher.persona?.correoElectronico || 'Sin email'}</TableCell>
                 <TableCell className="text-sm text-gray-500">{teacher.especialidad || 'No especificada'}</TableCell>
-                {/* <TableCell>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                    teacher.persona?.estado === 'active' 
-                      ? 'bg-green-100 text-green-800' 
-                      : teacher.persona?.estado === 'inactive'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {teacher.persona?.estado === 'active' 
-                      ? 'Activo' 
-                      : teacher.persona?.estado === 'inactive'
-                      ? 'Inactivo temporal'
-                      : 'Inactivo permanente'}
+                <TableCell>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Activo
                   </span>
-                </TableCell> */}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-2">
-                    <Button 
+                    <Button
                       type="button"
-                      variant="outline" 
+                      variant="outline"
                       size="sm"
                       aria-label="Editar profesor"
                       onClick={() => handleEdit(teacher)}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button 
+                    <Button
                       type="button"
-                      variant="outline" 
+                      variant="outline"
                       size="sm"
                       aria-label="Eliminar profesor"
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"

@@ -29,21 +29,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Teacher, TeacherFormData } from '../../types';
+import { TeacherPayload } from '../../types/TeacherPayload';
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: 'El nombre debe tener al menos 2 caracteres.',
-  }),
   email: z.string().email({
     message: 'Por favor ingresa un correo electrónico válido.',
   }),
-  phone: z.string().optional(),
-  subject: z.string().optional(),
-  status: z.enum(['active', 'inactive', 'on_leave'], {
-    required_error: 'Por favor selecciona un estado.',
+  password: z.string().min(6, {
+    message: 'La contraseña debe tener al menos 6 caracteres.',
   }),
-  hireDate: z.string().optional(),
+  nombre: z.string().min(2, {
+    message: 'El nombre debe tener al menos 2 caracteres.',
+  }),
+  apellidoPaterno: z.string().min(2, {
+    message: 'El apellido paterno es requerido.',
+  }),
+  apellidoMaterno: z.string().min(2, {
+    message: 'El apellido materno es requerido.',
+  }),
+  fechaNacimiento: z.string().min(1, {
+    message: 'La fecha de nacimiento es requerida.',
+  }),
+  personaGeneroId: z.number().min(1, {
+    message: 'Por favor selecciona un género.',
+  }),
+  especialidad: z.string().min(2, {
+    message: 'La especialidad es requerida.',
+  }),
 });
 
 type TeacherFormValues = z.infer<typeof formSchema>;
@@ -51,8 +63,8 @@ type TeacherFormValues = z.infer<typeof formSchema>;
 interface TeacherFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: TeacherFormData) => void;
-  teacher?: Teacher;
+  onSubmit: (data: TeacherPayload) => void;
+  teacher?: TeacherPayload;
   isSubmitting?: boolean;
 }
 
@@ -66,33 +78,39 @@ export function TeacherFormModal({
   const form = useForm<TeacherFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
       email: '',
-      phone: '',
-      subject: '',
-      status: 'active',
-      hireDate: new Date().toISOString().split('T')[0],
+      password: '',
+      nombre: '',
+      apellidoPaterno: '',
+      apellidoMaterno: '',
+      fechaNacimiento: new Date().toISOString().split('T')[0],
+      personaGeneroId: 1, // Default value, adjust as needed
+      especialidad: '',
     },
   });
 
   useEffect(() => {
     if (teacher) {
       form.reset({
-        name: teacher.name,
         email: teacher.email,
-        phone: teacher.phone || '',
-        subject: teacher.subject || '',
-        status: teacher.status,
-        hireDate: teacher.hireDate ? new Date(teacher.hireDate).toISOString().split('T')[0] : '',
+        password: '', // Don't pre-fill password for security
+        nombre: teacher.nombre || '',
+        apellidoPaterno: teacher.apellidoPaterno || '',
+        apellidoMaterno: teacher.apellidoMaterno || '',
+        fechaNacimiento: teacher.fechaNacimiento || new Date().toISOString().split('T')[0],
+        personaGeneroId: teacher.personaGeneroId || 1,
+        especialidad: teacher.especialidad || '',
       });
     } else {
       form.reset({
-        name: '',
         email: '',
-        phone: '',
-        subject: '',
-        status: 'active',
-        hireDate: new Date().toISOString().split('T')[0],
+        password: '',
+        nombre: '',
+        apellidoPaterno: '',
+        apellidoMaterno: '',
+        fechaNacimiento: new Date().toISOString().split('T')[0],
+        personaGeneroId: 1,
+        especialidad: '',
       });
     }
   }, [teacher, form, isOpen]);
@@ -114,98 +132,133 @@ export function TeacherFormModal({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre completo</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nombre del profesor" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Correo electrónico</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="email@ejemplo.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Teléfono</FormLabel>
-                  <FormControl>
-                    <Input placeholder="+1 (123) 456-7890" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="subject"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Asignatura</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Matemáticas, Ciencias, etc." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estado</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="nombre"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un estado" />
-                      </SelectTrigger>
+                      <Input placeholder="Nombre" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="active">Activo</SelectItem>
-                      <SelectItem value="inactive">Inactivo</SelectItem>
-                      <SelectItem value="on_leave">De baja</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="apellidoPaterno"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apellido Paterno</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Apellido paterno" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="apellidoMaterno"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apellido Materno</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Apellido materno" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="fechaNacimiento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fecha de Nacimiento</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="personaGeneroId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Género</FormLabel>
+                    <Select 
+                      onValueChange={(value) => field.onChange(Number(value))} 
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un género" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">Masculino</SelectItem>
+                        <SelectItem value="2">Femenino</SelectItem>
+                        <SelectItem value="3">Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="especialidad"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Especialidad</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Especialidad del profesor" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormLabel>Correo electrónico</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="email@ejemplo.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {!teacher && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel>Contraseña</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="hireDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fecha de contratación</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            </div>
             
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={onClose}>

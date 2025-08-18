@@ -1,14 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TeacherListFilters } from '../types/TeacherListFilters';
-import { TeacherFormData } from '../types/TeacherFormData';
 import { getTeachers, createTeacher, updateTeacher, deleteTeacher } from '../teachers.module';
 import { TeacherResponse } from '../types/TeacherResponse';
+import { TeacherPayload } from '../types/TeacherPayload';
 
-export const useTeachers = (initialFilters?: TeacherListFilters) => {
+export const useTeachers = () => {
   const [teachers, setTeachers] = useState<TeacherResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<TeacherListFilters | undefined>(initialFilters);
 
   const fetchTeachers = useCallback(async () => {
     try {
@@ -21,13 +19,13 @@ export const useTeachers = (initialFilters?: TeacherListFilters) => {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, []);
 
   useEffect(() => {
     fetchTeachers();
   }, [fetchTeachers]);
 
-  const createTeacher: any = async (teacherData: TeacherFormData) => {
+  const createTeacher: any = async (teacherData: TeacherPayload) => {
     try {
       setLoading(true);
       const newTeacher = await createTeacher(teacherData);
@@ -41,11 +39,11 @@ export const useTeachers = (initialFilters?: TeacherListFilters) => {
     }
   };
 
-  const updateTeacher: any = async (id: string, teacherData: Partial<TeacherFormData>) => {
+  const updateTeacher: any = async (id: string, teacherData: Partial<TeacherPayload>) => {
     try {
       setLoading(true);
       const updatedTeacher = await updateTeacher(id, teacherData);
-      setTeachers(prev => 
+      setTeachers(prev =>
         prev.map(teacher => teacher.id.toString() === id ? updatedTeacher : teacher)
       );
       return updatedTeacher;
@@ -70,22 +68,13 @@ export const useTeachers = (initialFilters?: TeacherListFilters) => {
     }
   };
 
-  const updateFilters = (newFilters: TeacherListFilters) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters,
-    }));
-  };
-
   return {
     teachers,
     loading,
     error,
-    filters,
     fetchTeachers,
     createTeacher,
     updateTeacher,
     deleteTeacher,
-    updateFilters,
   };
 };

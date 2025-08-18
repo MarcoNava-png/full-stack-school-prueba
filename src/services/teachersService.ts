@@ -1,8 +1,8 @@
 'use client'
 
-import { TeacherPayload } from "@/types/TeacherPayload";
-import { TeacherResponse } from "@/types/TeacherResponse";
-import { TeacherItem } from "@/types/TeacherItem";
+import { TeacherPayload } from "@/modules/teachers/types/TeacherPayload";
+import { TeacherResponse } from "@/modules/teachers/types/TeacherResponse";
+import { TeacherItem } from "@/modules/teachers/types/TeacherItem";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7169";
 

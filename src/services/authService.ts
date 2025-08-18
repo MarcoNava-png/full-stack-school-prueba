@@ -29,7 +29,7 @@ function decode<T = any>(jwt: string): T | null {
   try { return JSON.parse(atob(jwt.split('.')[1])); } catch { return null; }
 }
 
-export async function validateSession(): Promise<any | null> {
+export async function validateSession(): Promise<{ userId: string | number, role: string } | null> {
   const token = localStorage.getItem('token') ?? '';
   if (!token) return null;
 

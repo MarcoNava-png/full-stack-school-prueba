@@ -14,7 +14,6 @@ export function useAuth(redirectIfNoUser: boolean = false) {
       try {
         const session = await validateSession();
 
-        // 👇 Ajuste clave: verificamos si el backend manda claims o info del usuario
         if (session) {
           setUser(session);
         } else {
@@ -24,7 +23,6 @@ export function useAuth(redirectIfNoUser: boolean = false) {
           }
         }
       } catch (err) {
-        console.error("Error en validateSession:", err);
         setUser(null);
         if (redirectIfNoUser) {
           router.push("/sign-in");

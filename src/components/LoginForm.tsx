@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { useState } from "react";
-import { login } from "@/services/authService"; 
+import { login } from "@/services/authService";
 
 const LoginForm: React.FC = () => {
   const [usuario, setUsuario] = useState("");
@@ -16,7 +16,6 @@ const LoginForm: React.FC = () => {
       await login(usuario, contrasena);
       window.location.href = "/dashboard";
     } catch (err: any) {
-      // ✅ Solo guardamos el mensaje, no el objeto Error
       setError(err.message || "Error inesperado. Intenta de nuevo.");
     }
   };
@@ -57,7 +56,6 @@ const LoginForm: React.FC = () => {
             />
           </div>
 
-          {/* ✅ Ahora siempre será string */}
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <button

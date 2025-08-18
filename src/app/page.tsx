@@ -6,7 +6,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/sign-in"); // redirige automáticamente
+    router.replace("/sign-in");
   }, []);
 
   return null;

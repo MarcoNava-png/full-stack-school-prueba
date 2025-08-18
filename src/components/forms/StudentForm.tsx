@@ -25,13 +25,17 @@ const schema = z.object({
 
 type Inputs = z.infer<typeof schema>;
 
+interface StudentFormProps {
+  type: "create" | "update";
+  data?: any;
+  onSuccess?: (data: any) => void;
+}
+
 const StudentForm = ({
   type,
   data,
-}: {
-  type: "create" | "update";
-  data?: any;
-}) => {
+  onSuccess,
+}: StudentFormProps) => {
   const {
     register,
     handleSubmit,

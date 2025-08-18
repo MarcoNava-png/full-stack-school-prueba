@@ -43,3 +43,11 @@ export async function updateTeacher(teacher: TeacherItem): Promise<TeacherItem> 
 
   return res.json();
 }
+
+export async function deleteTeacher(id: string): Promise<any> {
+  const res = await fetch(`${API_URL}/Profesor/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error(`Error al eliminar profesor: ${res.statusText}`);
+  return res.json();
+}

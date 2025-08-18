@@ -46,7 +46,11 @@ const mockLessons = [
   { id: 2, name: "Lección 2" },
 ];
 
-const FormContainer = ({ table, type, data, id }: FormContainerProps) => {
+interface FormContainerPropsWithCallback extends FormContainerProps {
+  onSuccess?: (data: any) => void;
+}
+
+const FormContainer = ({ table, type, data, id, onSuccess }: FormContainerPropsWithCallback) => {
   let relatedData = {};
 
   if (type !== "delete") {
@@ -79,6 +83,7 @@ const FormContainer = ({ table, type, data, id }: FormContainerProps) => {
         data={data}
         id={typeof id === "string" ? Number(id) : id}
         relatedData={relatedData}
+        onSuccess={onSuccess}
       />
     </div>
   );

@@ -9,26 +9,14 @@ import { useState } from "react";
 // import TeacherForm from "./forms/TeacherForm";
 // import StudentForm from "./forms/StudentForm";
 
-const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
+const TeacherForm = dynamic(() => import("./modals/TeacherFormModal"), {
   loading: () => <h1>Loading...</h1>,
 });
 const StudentForm = dynamic(() => import("./forms/StudentForm"), {
   loading: () => <h1>Loading...</h1>,
 });
 
-const forms: {
-  [key: string]: (type: "create" | "update", data?: any) => JSX.Element;
-} = {
-  teacher: (type, data) => <TeacherForm type={type} data={data} />,
-  student: (type, data) => <StudentForm type={type} data={data} />
-};
-
-const FormModal = ({
-  table,
-  type,
-  data,
-  id,
-}: {
+interface FormModalProps {
   table:
     | "teacher"
     | "student"
@@ -46,7 +34,33 @@ const FormModal = ({
   data?: any;
   id?: number;
   relatedData?: Record<string, any>;
-}) => {
+  onSuccess?: (data: any) => void;
+}
+
+type TableType = FormModalProps['table'];
+type FormComponentProps = {
+  type: "create" | "update";
+  data?: any;
+  onSuccess?: (data: any) => void;
+};
+
+const forms: Partial<Record<TableType, (props: FormComponentProps) => JSX.Element>> = {
+  teacher: ({ type, data, onSuccess }) => (
+    <TeacherForm type={type} data={data} onSuccess={onSuccess} />
+  ),
+  student: ({ type, data, onSuccess }) => (
+    <StudentForm type={type} data={data} onSuccess={onSuccess} />
+  ),
+};
+
+const FormModal = ({
+  table,
+  type,
+  data,
+  id,
+  relatedData,
+  onSuccess,
+}: FormModalProps) => {
   const size = type === "create" ? "w-8 h-8" : "w-7 h-7";
   const bgColor =
     type === "create"
@@ -68,7 +82,7 @@ const FormModal = ({
         </button>
       </form>
     ) : type === "create" || type === "update" ? (
-      forms[table](type, data)
+      forms[table]?.({ type, data, onSuccess }) || "Form not found!"
     ) : (
       "Form not found!"
     );

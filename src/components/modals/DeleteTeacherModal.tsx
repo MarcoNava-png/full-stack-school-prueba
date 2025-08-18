@@ -1,0 +1,100 @@
+"use client";
+
+import { Fragment } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { TeacherItem } from "@/types/TeacherItem";
+import { deleteTeacher } from "@/services/teachersService";
+import { toast } from "react-hot-toast";
+
+interface DeleteTeacherModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  teacher: TeacherItem | null;
+  onDelete: (teacherId: string) => void;
+}
+
+export default function DeleteTeacherModal({
+  isOpen,
+  onClose,
+  teacher,
+  onDelete,
+}: DeleteTeacherModalProps) {
+  const handleDelete = async () => {
+    if (!teacher) return;
+
+    try {
+      await deleteTeacher(teacher.id.toString());
+      toast.success("Profesor eliminado correctamente");
+      onDelete(teacher.id.toString());
+      onClose();
+    } catch (error) {
+      console.error("Error deleting teacher:", error);
+      toast.error("Error al eliminar el profesor");
+    }
+  };
+
+  if (!teacher) return null;
+
+  return (
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black bg-opacity-25" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Title
+                  as="h3"
+                  className="text-lg font-medium leading-6 text-gray-900"
+                >
+                  ¿Estás seguro de eliminar este profesor?
+                </Dialog.Title>
+                <div className="mt-2">
+                  <p className="text-sm text-gray-500">
+                    Esta acción no se puede deshacer. Se eliminará permanentemente al profesor {teacher.name}.
+                  </p>
+                </div>
+
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lamaPurple"
+                    onClick={onClose}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    onClick={handleDelete}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+}

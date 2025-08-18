@@ -120,32 +120,52 @@ const menuItems = [
 ];
 
 
-const Menu = () => {
+const Sidebar = () => {
   return (
-    <div className="mt-4 text-sm w-full">
-  {menuItems.map((section) => (
-    <div className="flex flex-col gap-0.5" key={section.title}>
-      <span className="hidden lg:block text-gray-400 font-light my-4">
-        {section.title}
-      </span>
-      {section.items.map((item) => {
-        if(item.visible.includes(role)){
-          return(
-            <Link 
-              href={item.href}
-              key={item.label}
-              className="flex items-center justify-center lg:justify-start gap-4 text-gray-500 py-2 md-px rounded-md hover:bg-lamaSkyLight"
-            >
-              <Image src={item.icon} alt="" width={20} height={20} />
-              <span className="hidden lg:block">{item.label}</span>
-            </Link>
-          );
-        }
-      } )}
+    <div className="h-full">
+      <div className="text-sm h-full overflow-y-auto pr-2">
+        {/* Custom scrollbar styles */}
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            width: 6px;
+          }
+          div::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+            margin: 8px 0;
+          }
+          div::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+          }
+          div::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+          }
+      `}</style>
+        {menuItems.map((section) => (
+        <div className="flex flex-col gap-0.5" key={section.title}>
+          <span className="hidden lg:block text-gray-400 font-light my-4">
+            {section.title}
+          </span>
+          {section.items.map((item) => {
+            if (item.visible.includes(role)) {
+              return (
+                <Link
+                  href={item.href}
+                  key={item.label}
+                  className="flex items-center justify-center lg:justify-start gap-4 text-gray-500 py-2 md-px rounded-md hover:bg-lamaSkyLight"
+                >
+                  <Image src={item.icon} alt="" width={20} height={20} />
+                  <span className="hidden lg:block">{item.label}</span>
+                </Link>
+              );
+            }
+          })}
+        </div>
+        ))}
+      </div>
     </div>
-  ))}
-</div>
   );
 };
 
-export default Menu;
+export default Sidebar;

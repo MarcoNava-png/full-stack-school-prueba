@@ -1,7 +1,7 @@
 'use client'
 
 import { TeacherPayload } from "@/types/TeacherPayload";
-import { TeacherResponse } from "@/types/TeacherReponse";
+import { TeacherResponse } from "@/types/TeacherResponse";
 import { TeacherItem } from "@/types/TeacherItem";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7169";

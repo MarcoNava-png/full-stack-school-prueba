@@ -9,7 +9,7 @@ import TableSearch from "@/components/TableSearch";
 import FormContainer from "@/components/FormContainer";
 import { getTeachers, updateTeacher } from "@/services/teachersService";
 import { TeacherItem } from "@/types/TeacherItem";
-import { TeacherResponse } from "@/types/TeacherReponse";
+import { TeacherResponse } from "@/types/TeacherResponse";
 import EditTeacherModal from "@/components/modals/EditTeacherModal";
 
 const mapTeacherResponse = (teacher: TeacherResponse): TeacherItem => ({

@@ -7,9 +7,10 @@ import Table from "@/components/Table";
 import Pagination from "@/components/Pagination";
 import TableSearch from "@/components/TableSearch";
 import FormContainer from "@/components/FormContainer";
-import { getTeachers } from "@/services/teachersService";
+import { getTeachers, updateTeacher } from "@/services/teachersService";
 import { TeacherItem } from "@/types/TeacherItem";
 import { TeacherResponse } from "@/types/TeacherReponse";
+import EditTeacherModal from "@/components/modals/EditTeacherModal";
 
 const mapTeacherResponse = (teacher: TeacherResponse): TeacherItem => ({
   id: teacher.id,
@@ -27,7 +28,32 @@ const TeacherListPage = () => {
   const [teachers, setTeachers] = useState<TeacherItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherItem | null>(null);
   const role = "admin"; // Simulación
+
+  const handleEdit = (teacher: TeacherItem) => {
+    setSelectedTeacher(teacher);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateTeacher = async (updatedTeacher: TeacherItem) => {
+    try {
+      // Update in the API
+      await updateTeacher(updatedTeacher);
+      
+      // Update local state
+      setTeachers(teachers.map(teacher => 
+        teacher.id === updatedTeacher.id ? updatedTeacher : teacher
+      ));
+      
+      setIsEditModalOpen(false);
+      setSelectedTeacher(null);
+    } catch (error) {
+      console.error('Error updating teacher:', error);
+      setError('Error al actualizar el profesor');
+    }
+  };
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -90,11 +116,12 @@ const TeacherListPage = () => {
       <td className="hidden lg:table-cell">{item.phone || 'N/A'}</td>
       <td>
         <div className="flex items-center gap-2">
-          <Link href={`/list/teachers/${item.id}`}>
-            <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaSky">
-              <Image src="/view.png" alt="Ver" width={16} height={16} />
-            </button>
-          </Link>
+          <button 
+            onClick={() => handleEdit(item)}
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaSky"
+          >
+            <Image src="/view.png" alt="Editar" width={16} height={16} />
+          </button>
           {role === "admin" && (
             <FormContainer table="teacher" type="delete" id={item.id} />
           )}
@@ -125,6 +152,18 @@ const TeacherListPage = () => {
 
       <Table columns={columns} renderRow={renderRow} data={teachers} />
       <Pagination page={1} count={teachers.length} />
+      
+      {selectedTeacher && (
+        <EditTeacherModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedTeacher(null);
+          }}
+          teacher={selectedTeacher}
+          onSave={handleUpdateTeacher}
+        />
+      )}
     </div>
   );
 };

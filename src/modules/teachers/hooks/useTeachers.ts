@@ -73,8 +73,8 @@ export const useTeachers = () => {
     loading,
     error,
     fetchTeachers,
-    createTeacher,
-    updateTeacher,
-    deleteTeacher,
+    createTeacherData,
+    updateTeacherData,
+    deleteTeacherById,
   };
 };

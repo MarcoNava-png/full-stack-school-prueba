@@ -21,9 +21,9 @@ export function TeacherList() {
     teachers,
     loading,
     error,
-    deleteTeacher,
-    createTeacher,
-    updateTeacher,
+    deleteTeacherById,
+    createTeacherData,
+    updateTeacherData,
   } = useTeachers();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,10 +46,10 @@ export function TeacherList() {
     if (!selectedTeacher) return;
 
     try {
-      await deleteTeacher(selectedTeacher.id.toString());
+      await deleteTeacherById(selectedTeacher.id.toString());
       setIsDeleteModalOpen(false);
       setSelectedTeacher(null);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting teacher:', error);
     }
   };
@@ -86,16 +86,17 @@ export function TeacherList() {
   });
 
   const handleFormSubmit = async (data: TeacherPayload) => {
+    console.log(data);
     try {
       if (isEditing && selectedTeacher) {
-        await updateTeacher(selectedTeacher.id.toString(), data);
+        await updateTeacherData(selectedTeacher.id.toString(), data);
       } else {
-        await createTeacher(data);
+        await createTeacherData(data);
       }
       setIsFormModalOpen(false);
       setSelectedTeacher(null);
       setIsEditing(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error saving teacher:', error);
     }
   };
@@ -225,18 +226,16 @@ export function TeacherList() {
       </div>
 
       {isFormModalOpen && (
-        <div className="m-10">
-          <TeacherFormModal
-            isOpen={isFormModalOpen}
-            onClose={() => {
-              setIsFormModalOpen(false);
-              setSelectedTeacher(null);
-              setIsEditing(false);
-            }}
-            onSubmit={handleFormSubmit}
-            teacher={isEditing && selectedTeacher ? mapToTeacherFormData(selectedTeacher) : undefined}
-          />
-        </div>
+        <TeacherFormModal
+          isOpen={isFormModalOpen}
+          onClose={() => {
+            setIsFormModalOpen(false);
+            setSelectedTeacher(null);
+            setIsEditing(false);
+          }}
+          onSubmit={handleFormSubmit}
+          teacher={isEditing && selectedTeacher ? mapToTeacherFormData(selectedTeacher) : undefined}
+        />
       )}
 
       {isDeleteModalOpen && selectedTeacher && (

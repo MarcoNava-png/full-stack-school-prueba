@@ -1,60 +1,61 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Table from "@/components/Table";
 import Pagination from "@/components/Pagination";
 import TableSearch from "@/components/TableSearch";
 import FormContainer from "@/components/FormContainer";
+import { getTeachers } from "@/services/teachersService";
+import { TeacherItem } from "@/types/TeacherItem";
+import { TeacherResponse } from "@/types/TeacherReponse";
 
-// Tipo para un profesor
-type TeacherItem = {
-  id: number;
-  name: string;
-  email: string;
-  username: string;
-  phone: string;
-  address: string;
-  img: string;
-  subjects: { name: string }[];
-  classes: { name: string }[];
-};
-
-const data: TeacherItem[] = [
-  {
-    id: 1,
-    name: "Carlos Ramírez",
-    email: "carlos.ramirez@escuela.edu",
-    username: "cramirez",
-    phone: "555-1234",
-    address: "Calle Falsa 123",
-    img: "/avatar.png",
-    subjects: [{ name: "Matemáticas" }],
-    classes: [{ name: "1A" }, { name: "2B" }],
-  },
-  {
-    id: 2,
-    name: "María González",
-    email: "maria.gonzalez@escuela.edu",
-    username: "mgonzalez",
-    phone: "555-5678",
-    address: "Av. Principal 456",
-    img: "/avatar.png",
-    subjects: [{ name: "Historia" }],
-    classes: [{ name: "3A" }],
-  },
-];
+const mapTeacherResponse = (teacher: TeacherResponse): TeacherItem => ({
+  id: teacher.id,
+  name: `${teacher.persona.nombre} ${teacher.persona.apellidoPaterno} ${teacher.persona.apellidoMaterno}`.trim(),
+  email: teacher.persona.correoElectronico,
+  phone: teacher.persona.telefono,
+  speciality: teacher.especialidad,
+  joinDate: teacher.fechaAlta,
+  img: "/avatar.png",
+  subjects: [],
+  classes: []
+});
 
 const TeacherListPage = () => {
+  const [teachers, setTeachers] = useState<TeacherItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const role = "admin"; // Simulación
+
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const data = await getTeachers();
+        const mappedTeachers = data.map(mapTeacherResponse);
+        setTeachers(mappedTeachers);
+      } catch (err) {
+        setError('Error al cargar los profesores');
+        console.error('Error fetching teachers:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTeachers();
+  }, []);
+
+  if (isLoading) return <div className="p-4">Cargando profesores...</div>;
+  if (error) return <div className="p-4 text-red-600">{error}</div>;
 
   const columns = [
     { header: "Info", accessor: "info" },
-    { header: "ID", accessor: "teacherId", className: "hidden md:table-cell" },
+    { header: "Especialidad", accessor: "speciality", className: "hidden md:table-cell" },
+    { header: "Fecha de Ingreso", accessor: "joinDate", className: "hidden md:table-cell" },
     { header: "Materias", accessor: "subjects", className: "hidden md:table-cell" },
-    { header: "Clases", accessor: "classes", className: "hidden md:table-cell" },
+    { header: "Clases", accessor: "classes", className: "hidden lg:table-cell" },
     { header: "Teléfono", accessor: "phone", className: "hidden lg:table-cell" },
-    { header: "Dirección", accessor: "address", className: "hidden lg:table-cell" },
     ...(role === "admin" ? [{ header: "Acciones", accessor: "action" }] : []),
   ];
 
@@ -76,15 +77,17 @@ const TeacherListPage = () => {
           <p className="text-xs text-gray-500">{item.email}</p>
         </div>
       </td>
-      <td className="hidden md:table-cell">{item.username}</td>
+      <td className="hidden md:table-cell">{item.speciality}</td>
       <td className="hidden md:table-cell">
-        {item.subjects.map((s: { name: string }) => s.name).join(", ")}
+        {new Date(item.joinDate).toLocaleDateString()}
       </td>
       <td className="hidden md:table-cell">
-        {item.classes.map((c: { name: string }) => c.name).join(", ")}
+        {item.subjects?.map((s) => s.name).join(", ") || 'N/A'}
       </td>
-      <td className="hidden md:table-cell">{item.phone}</td>
-      <td className="hidden md:table-cell">{item.address}</td>
+      <td className="hidden lg:table-cell">
+        {item.classes?.map((c) => c.name).join(", ") || 'N/A'}
+      </td>
+      <td className="hidden lg:table-cell">{item.phone || 'N/A'}</td>
       <td>
         <div className="flex items-center gap-2">
           <Link href={`/list/teachers/${item.id}`}>
@@ -120,8 +123,8 @@ const TeacherListPage = () => {
         </div>
       </div>
 
-      <Table columns={columns} renderRow={renderRow} data={data} />
-      <Pagination page={1} count={data.length} />
+      <Table columns={columns} renderRow={renderRow} data={teachers} />
+      <Pagination page={1} count={teachers.length} />
     </div>
   );
 };

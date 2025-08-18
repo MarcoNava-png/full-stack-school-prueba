@@ -1,17 +1,18 @@
 'use client'
 
 import { TeacherPayload } from "@/types/TeacherPayload";
+import { TeacherResponse } from "@/types/TeacherReponse";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7169";
 
-export async function getTeachers(): Promise<any[]> {
-  const res = await fetch(`${API_URL}/api/Profesor`);
+export async function getTeachers(): Promise<TeacherResponse[]> {
+  const res = await fetch(`${API_URL}/Profesor`);
   if (!res.ok) throw new Error(`Error al obtener profesores: ${res.statusText}`);
   return res.json();
 }
 
 export async function createTeacher(data: TeacherPayload): Promise<any> {
-  const res = await fetch(`${API_URL}/api/Profesor`, {
+  const res = await fetch(`${API_URL}/Profesor`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

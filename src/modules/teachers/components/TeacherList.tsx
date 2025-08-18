@@ -22,6 +22,8 @@ export function TeacherList() {
     loading,
     error,
     deleteTeacher,
+    createTeacher,
+    updateTeacher,
   } = useTeachers();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,7 +46,7 @@ export function TeacherList() {
     if (!selectedTeacher) return;
 
     try {
-      await deleteTeacher(selectedTeacher.id);
+      await deleteTeacher(selectedTeacher.id.toString());
       setIsDeleteModalOpen(false);
       setSelectedTeacher(null);
     } catch (error) {
@@ -83,10 +85,19 @@ export function TeacherList() {
     especialidad: teacher.especialidad || ''
   });
 
-  const handleFormSubmit = () => {
-    setIsFormModalOpen(false);
-    setSelectedTeacher(null);
-    setIsEditing(false);
+  const handleFormSubmit = async (data: TeacherPayload) => {
+    try {
+      if (isEditing && selectedTeacher) {
+        await updateTeacher(selectedTeacher.id.toString(), data);
+      } else {
+        await createTeacher(data);
+      }
+      setIsFormModalOpen(false);
+      setSelectedTeacher(null);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving teacher:', error);
+    }
   };
 
   if (loading && !teachers.length) {

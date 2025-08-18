@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getTeachers, createTeacher, updateTeacher, deleteTeacher } from '../teachers.module';
+import { getTeachers, createTeacher as createTeacherApi, updateTeacher as updateTeacherApi, deleteTeacher as deleteTeacherApi } from '../teachers.module';
 import { TeacherResponse } from '../types/TeacherResponse';
 import { TeacherPayload } from '../types/TeacherPayload';
 
@@ -25,11 +25,11 @@ export const useTeachers = () => {
     fetchTeachers();
   }, [fetchTeachers]);
 
-  const createTeacher: any = async (teacherData: TeacherPayload) => {
+  const createTeacher = async (teacherData: TeacherPayload) => {
     try {
       setLoading(true);
-      const newTeacher = await createTeacher(teacherData);
-      setTeachers(prev => [...prev, newTeacher]);
+      const newTeacher = await createTeacherApi(teacherData);
+      setTeachers(prev => [newTeacher, ...prev]);
       return newTeacher;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear el profesor');
@@ -39,10 +39,10 @@ export const useTeachers = () => {
     }
   };
 
-  const updateTeacher: any = async (id: string, teacherData: Partial<TeacherPayload>) => {
+  const updateTeacher = async (id: string, teacherData: Partial<TeacherPayload>) => {
     try {
       setLoading(true);
-      const updatedTeacher = await updateTeacher(id, teacherData);
+      const updatedTeacher = await updateTeacherApi(id, teacherData);
       setTeachers(prev =>
         prev.map(teacher => teacher.id.toString() === id ? updatedTeacher : teacher)
       );
@@ -55,10 +55,10 @@ export const useTeachers = () => {
     }
   };
 
-  const deleteTeacher: any = async (id: string) => {
+  const deleteTeacher = async (id: string) => {
     try {
       setLoading(true);
-      await deleteTeacher(id);
+      await deleteTeacherApi(id);
       setTeachers(prev => prev.filter(teacher => teacher.id.toString() !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al eliminar el profesor');

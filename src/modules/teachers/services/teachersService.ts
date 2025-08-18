@@ -28,26 +28,32 @@ export async function createTeacher(data: TeacherPayload): Promise<any> {
   return res.json();
 }
 
-export async function updateTeacher(teacher: TeacherItem): Promise<TeacherItem> {
-  const res = await fetch(`${API_URL}/Profesor/${teacher.id}`, {
+export async function updateTeacher(id: string | number, data: Partial<TeacherPayload>): Promise<TeacherResponse> {
+  const res = await fetch(`${API_URL}/Profesor/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(teacher),
+    body: JSON.stringify(data),
   });
 
   if (!res.ok) {
-    throw new Error(`Error al actualizar profesor: ${res.statusText}`);
+    const error = await res.text().catch(() => res.statusText);
+    throw new Error(`Error al actualizar profesor: ${error}`);
   }
 
   return res.json();
 }
 
-export async function deleteTeacher(id: string): Promise<any> {
+export async function deleteTeacher(id: string | number): Promise<{ success: boolean }> {
   const res = await fetch(`${API_URL}/Profesor/${id}`, {
     method: "DELETE",
   });
-  if (!res.ok) throw new Error(`Error al eliminar profesor: ${res.statusText}`);
-  return res.json();
+
+  if (!res.ok) {
+    const error = await res.text().catch(() => res.statusText);
+    throw new Error(`Error al eliminar profesor: ${error}`);
+  }
+
+  return { success: true };
 }

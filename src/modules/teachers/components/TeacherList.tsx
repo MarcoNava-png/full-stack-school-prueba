@@ -1,0 +1,235 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Pencil, Trash2, Plus } from 'lucide-react';
+import { useTeachers } from '../hooks';
+import { DeleteTeacherModal } from './modals/DeleteTeacherModal';
+import type { TeacherResponse } from '../types/TeacherResponse';
+import { TeacherFormModal } from '../teachers.module';
+import type { Teacher } from '../types/Teacher';
+
+interface TeacherListProps {
+  initialData?: TeacherResponse[];
+}
+
+export function TeacherList({ initialData = [] }: TeacherListProps) {
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherResponse | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const { 
+    teachers, 
+    loading, 
+    error, 
+    deleteTeacher,
+    updateFilters 
+  } = useTeachers({ searchQuery: searchTerm });
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    updateFilters({ searchQuery: value });
+  };
+
+  const handleEdit = (teacher: TeacherResponse) => {
+    setSelectedTeacher(teacher);
+    setIsEditing(true);
+    setIsFormModalOpen(true);
+  };
+
+  const handleDeleteClick = (teacher: TeacherResponse) => {
+    setSelectedTeacher(teacher);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedTeacher) return;
+    
+    try {
+      await deleteTeacher(selectedTeacher.id);
+      setIsDeleteModalOpen(false);
+      setSelectedTeacher(null);
+    } catch (error) {
+      console.error('Error deleting teacher:', error);
+    }
+  };
+
+  const mapToTeacherFormData = (teacher: TeacherResponse): Teacher => ({
+    id: teacher.id.toString(),
+    name: teacher.persona?.nombre || '',
+    email: teacher.persona?.correoElectronico || '',
+    phone: teacher.persona?.telefono || '',
+    subject: teacher.especialidad || '',
+    status: 'active', // Default status, adjust as needed
+    hireDate: new Date() // Default to current date, adjust as needed
+  });
+
+  const handleFormSubmit = () => {
+    setIsFormModalOpen(false);
+    setSelectedTeacher(null);
+    setIsEditing(false);
+  };
+
+  if (loading && !teachers.length) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <span className="ml-4">Cargando profesores...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border-l-4 border-red-500 p-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-red-700">
+              Error al cargar los profesores: {error ? error : 'Error desconocido'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Lista de Profesores</h2>
+        <Button 
+          type="button"
+          variant="default"
+          onClick={() => {
+            setSelectedTeacher(null);
+            setIsEditing(false);
+            setIsFormModalOpen(true);
+          }}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Nuevo Profesor
+        </Button>
+      </div>
+
+      <div className="w-full md:w-1/3">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium">Buscar profesores</label>
+          <input
+            type="text"
+            placeholder="Buscar..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="ring-1 ring-gray-300 p-2 rounded-md text-sm w-full"
+          />
+        </div>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Asignatura</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {teachers.map((teacher) => (
+              <TableRow key={teacher.id} className="hover:bg-gray-50">
+                <TableCell className="font-medium">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                      {teacher.persona?.nombre?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900">{teacher.persona?.nombre || 'Sin nombre'}</div>
+                      <div className="text-sm text-gray-500">{teacher.persona?.telefono || 'Sin teléfono'}</div>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="text-sm text-gray-900">{teacher.persona?.correoElectronico || 'Sin email'}</TableCell>
+                <TableCell className="text-sm text-gray-500">{teacher.especialidad || 'No especificada'}</TableCell>
+                {/* <TableCell>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                    teacher.persona?.estado === 'active' 
+                      ? 'bg-green-100 text-green-800' 
+                      : teacher.persona?.estado === 'inactive'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {teacher.persona?.estado === 'active' 
+                      ? 'Activo' 
+                      : teacher.persona?.estado === 'inactive'
+                      ? 'Inactivo temporal'
+                      : 'Inactivo permanente'}
+                  </span>
+                </TableCell> */}
+                <TableCell className="text-right">
+                  <div className="flex justify-end space-x-2">
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      size="sm"
+                      aria-label="Editar profesor"
+                      onClick={() => handleEdit(teacher)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      size="sm"
+                      aria-label="Eliminar profesor"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleDeleteClick(teacher)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {isFormModalOpen && (
+        <TeacherFormModal
+          isOpen={isFormModalOpen}
+          onClose={() => {
+            setIsFormModalOpen(false);
+            setSelectedTeacher(null);
+            setIsEditing(false);
+          }}
+          onSubmit={handleFormSubmit}
+          teacher={isEditing && selectedTeacher ? mapToTeacherFormData(selectedTeacher) : undefined}
+        />
+      )}
+
+      {isDeleteModalOpen && selectedTeacher && (
+        <DeleteTeacherModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setSelectedTeacher(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+          teacherName={selectedTeacher.persona?.nombre || 'este profesor'}
+        />
+      )}
+    </div>
+  );
+}

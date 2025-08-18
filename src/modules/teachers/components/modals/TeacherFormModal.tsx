@@ -35,9 +35,13 @@ const formSchema = z.object({
   email: z.string().email({
     message: 'Por favor ingresa un correo electrónico válido.',
   }),
-  password: z.string().min(6, {
-    message: 'La contraseña debe tener al menos 6 caracteres.',
-  }),
+  password: z.string()
+    .min(8, {
+      message: 'La contraseña debe tener al menos 8 caracteres.',
+    })
+    .regex(/^(?=.*[a-z])(?=.*[A-Z]).*$/, {
+      message: 'La contraseña debe incluir al menos una letra mayúscula y una letra minúscula.',
+    }),
   nombre: z.string().min(2, {
     message: 'El nombre debe tener al menos 2 caracteres.',
   }),
@@ -84,7 +88,7 @@ export function TeacherFormModal({
       apellidoPaterno: '',
       apellidoMaterno: '',
       fechaNacimiento: new Date().toISOString().split('T')[0],
-      personaGeneroId: 1, // Default value, adjust as needed
+      personaGeneroId: 1,
       especialidad: '',
     },
   });
@@ -93,7 +97,7 @@ export function TeacherFormModal({
     if (teacher) {
       form.reset({
         email: teacher.email,
-        password: '', // Don't pre-fill password for security
+        password: '',
         nombre: teacher.nombre || '',
         apellidoPaterno: teacher.apellidoPaterno || '',
         apellidoMaterno: teacher.apellidoMaterno || '',
@@ -119,26 +123,26 @@ export function TeacherFormModal({
     try {
       await onSubmit(data);
       form.reset();
-    } catch (error) {
-      // Error is already handled in the parent component
+    } catch (error: unknown) {
       console.error('Form submission error:', error);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
+      <DialogContent className='max-w-3xl'>
         <DialogHeader>
           <DialogTitle>{teacher ? 'Editar Profesor' : 'Nuevo Profesor'}</DialogTitle>
           <DialogDescription>
-            {teacher 
+            {teacher
               ? 'Actualiza la información del profesor.'
               : 'Completa la información para agregar un nuevo profesor.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
+
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="nombre"
@@ -152,7 +156,7 @@ export function TeacherFormModal({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="apellidoPaterno"
@@ -166,7 +170,7 @@ export function TeacherFormModal({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="apellidoMaterno"
@@ -180,7 +184,7 @@ export function TeacherFormModal({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="fechaNacimiento"
@@ -194,15 +198,15 @@ export function TeacherFormModal({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="personaGeneroId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Género</FormLabel>
-                    <Select 
-                      onValueChange={(value) => field.onChange(Number(value))} 
+                    <Select
+                      onValueChange={(value) => field.onChange(Number(value))}
                       value={field.value?.toString()}
                     >
                       <FormControl>
@@ -220,7 +224,7 @@ export function TeacherFormModal({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="especialidad"
@@ -234,12 +238,12 @@ export function TeacherFormModal({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem className="col-span-2">
+                  <FormItem className="col-span-3">
                     <FormLabel>Correo electrónico</FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="email@ejemplo.com" {...field} />
@@ -248,13 +252,13 @@ export function TeacherFormModal({
                   </FormItem>
                 )}
               />
-              
+
               {!teacher && (
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
-                    <FormItem className="col-span-2">
+                    <FormItem className="col-span-3">
                       <FormLabel>Contraseña</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="••••••" {...field} />
@@ -265,13 +269,13 @@ export function TeacherFormModal({
                 />
               )}
             </div>
-            
+
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isSubmitting}
                 className="min-w-[100px]"
               >
@@ -283,12 +287,13 @@ export function TeacherFormModal({
                     </svg>
                     Guardando...
                   </>
-                ) : teacher 
-                  ? 'Actualizar profesor' 
+                ) : teacher
+                  ? 'Actualizar profesor'
                   : 'Agregar profesor'}
               </Button>
             </DialogFooter>
           </form>
+
         </Form>
       </DialogContent>
     </Dialog>

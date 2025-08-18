@@ -225,16 +225,18 @@ export function TeacherList() {
       </div>
 
       {isFormModalOpen && (
-        <TeacherFormModal
-          isOpen={isFormModalOpen}
-          onClose={() => {
-            setIsFormModalOpen(false);
-            setSelectedTeacher(null);
-            setIsEditing(false);
-          }}
-          onSubmit={handleFormSubmit}
-          teacher={isEditing && selectedTeacher ? mapToTeacherFormData(selectedTeacher) : undefined}
-        />
+        <div className="m-10">
+          <TeacherFormModal
+            isOpen={isFormModalOpen}
+            onClose={() => {
+              setIsFormModalOpen(false);
+              setSelectedTeacher(null);
+              setIsEditing(false);
+            }}
+            onSubmit={handleFormSubmit}
+            teacher={isEditing && selectedTeacher ? mapToTeacherFormData(selectedTeacher) : undefined}
+          />
+        </div>
       )}
 
       {isDeleteModalOpen && selectedTeacher && (

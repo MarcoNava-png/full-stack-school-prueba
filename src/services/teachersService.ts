@@ -1,17 +1,8 @@
 'use client'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7169";
+import { TeacherPayload } from "@/types/TeacherPayload";
 
-export interface ProfesorPayload {
-  email: string;
-  password: string;
-  nombre: string;
-  apellidoPaterno: string;
-  apellidoMaterno: string;
-  fechaNacimiento: string;
-  personaGeneroId: number;
-  especialidad: string;
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7169";
 
 export async function getTeachers(): Promise<any[]> {
   const res = await fetch(`${API_URL}/api/Profesor`);
@@ -19,7 +10,7 @@ export async function getTeachers(): Promise<any[]> {
   return res.json();
 }
 
-export async function createTeacher(data: ProfesorPayload): Promise<any> {
+export async function createTeacher(data: TeacherPayload): Promise<any> {
   const res = await fetch(`${API_URL}/api/Profesor`, {
     method: "POST",
     headers: {

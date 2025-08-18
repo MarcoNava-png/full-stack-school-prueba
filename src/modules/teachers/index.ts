@@ -1,6 +1,3 @@
-// Re-exportar todo lo que el módulo expone
-export * from './teachers.module';
-
 // Servicios
 export * from './services/teachersService';
 

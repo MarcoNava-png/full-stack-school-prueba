@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getTeachers, createTeacher as createTeacherApi, updateTeacher as updateTeacherApi, deleteTeacher as deleteTeacherApi } from '../teachers.module';
 import { TeacherResponse } from '../types/TeacherResponse';
 import { TeacherPayload } from '../types/TeacherPayload';
+import { createTeacher, deleteTeacher, getTeachers, updateTeacher } from '../services/teachersService';
 
 export const useTeachers = () => {
   const [teachers, setTeachers] = useState<TeacherResponse[]>([]);
@@ -25,10 +25,10 @@ export const useTeachers = () => {
     fetchTeachers();
   }, [fetchTeachers]);
 
-  const createTeacher = async (teacherData: TeacherPayload) => {
+  const createTeacherData = async (teacherData: TeacherPayload) => {
     try {
       setLoading(true);
-      const newTeacher = await createTeacherApi(teacherData);
+      const newTeacher = await createTeacher(teacherData);
       setTeachers(prev => [newTeacher, ...prev]);
       return newTeacher;
     } catch (err) {
@@ -39,10 +39,10 @@ export const useTeachers = () => {
     }
   };
 
-  const updateTeacher = async (id: string, teacherData: Partial<TeacherPayload>) => {
+  const updateTeacherData = async (id: string, teacherData: Partial<TeacherPayload>) => {
     try {
       setLoading(true);
-      const updatedTeacher = await updateTeacherApi(id, teacherData);
+      const updatedTeacher = await updateTeacher(id, teacherData);
       setTeachers(prev =>
         prev.map(teacher => teacher.id.toString() === id ? updatedTeacher : teacher)
       );
@@ -55,10 +55,10 @@ export const useTeachers = () => {
     }
   };
 
-  const deleteTeacher = async (id: string) => {
+  const deleteTeacherById = async (id: string) => {
     try {
       setLoading(true);
-      await deleteTeacherApi(id);
+      await deleteTeacher(id);
       setTeachers(prev => prev.filter(teacher => teacher.id.toString() !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al eliminar el profesor');

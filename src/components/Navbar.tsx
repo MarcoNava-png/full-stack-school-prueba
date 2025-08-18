@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";   // ✅ IMPORTANTE
-import { logout } from "@/services/authService"; // ✅ Para cerrar sesión
+import { useAuth } from "@/hooks/useAuth";
+import { logout } from "@/services/authService";
 
 const Navbar = () => {
   const [showMessages, setShowMessages] = useState(false);
@@ -46,11 +46,10 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ Función de cerrar sesión
   const handleLogoutClick = async () => {
-    await logout();   // llama al backend y elimina la cookie
-    handleLogout();   // limpia el estado del hook
-    window.location.href = "/login"; // redirige al login
+    await logout();
+    handleLogout();
+    window.location.href = "/sign-in";
   };
 
   return (
@@ -128,13 +127,14 @@ const Navbar = () => {
               <li className="cursor-pointer hover:text-indigo-600">Configuración</li>
               <li
                 className="cursor-pointer hover:text-red-500"
-                onClick={handleLogoutClick} // ✅ Aquí cerramos sesión
+                onClick={handleLogoutClick}
               >
                 Cerrar sesión
               </li>
             </ul>
           </div>
         )}
+        
       </div>
     </div>
   );

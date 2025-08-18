@@ -2,18 +2,15 @@
 
 import { TeacherPayload } from "@/modules/teachers/types/TeacherPayload";
 import { TeacherResponse } from "@/modules/teachers/types/TeacherResponse";
-import { TeacherItem } from "@/modules/teachers/types/TeacherItem";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7169";
+import { apiFetch } from "@/lib/fetcher";
 
 export async function getTeachers(): Promise<TeacherResponse[]> {
-  const res = await fetch(`${API_URL}/Profesor`);
-  if (!res.ok) throw new Error(`Error al obtener profesores: ${res.statusText}`);
-  return res.json();
+  const res = await apiFetch<TeacherResponse[]>(`/Profesor`);
+  return res;
 }
 
-export async function createTeacher(data: TeacherPayload): Promise<any> {
-  const res = await fetch(`${API_URL}/Profesor`, {
+export async function createTeacher(data: TeacherPayload): Promise<TeacherResponse> {
+  const res = await apiFetch<TeacherResponse>(`/Profesor`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -21,15 +18,11 @@ export async function createTeacher(data: TeacherPayload): Promise<any> {
     body: JSON.stringify(data),
   });
 
-  if (!res.ok) {
-    throw new Error(`Error al crear profesor: ${res.statusText}`);
-  }
-
-  return res.json();
+  return res;
 }
 
 export async function updateTeacher(id: string | number, data: Partial<TeacherPayload>): Promise<TeacherResponse> {
-  const res = await fetch(`${API_URL}/Profesor/${id}`, {
+  const res = await apiFetch<TeacherResponse>(`/Profesor/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -37,23 +30,13 @@ export async function updateTeacher(id: string | number, data: Partial<TeacherPa
     body: JSON.stringify(data),
   });
 
-  if (!res.ok) {
-    const error = await res.text().catch(() => res.statusText);
-    throw new Error(`Error al actualizar profesor: ${error}`);
-  }
-
-  return res.json();
+  return res;
 }
 
 export async function deleteTeacher(id: string | number): Promise<{ success: boolean }> {
-  const res = await fetch(`${API_URL}/Profesor/${id}`, {
+  const res = await apiFetch<{ success: boolean }>(`/Profesor/${id}`, {
     method: "DELETE",
   });
 
-  if (!res.ok) {
-    const error = await res.text().catch(() => res.statusText);
-    throw new Error(`Error al eliminar profesor: ${error}`);
-  }
-
-  return { success: true };
+  return res;
 }

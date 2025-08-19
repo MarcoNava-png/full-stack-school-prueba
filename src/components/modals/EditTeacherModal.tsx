@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, Transition, DialogPanel } from "@headlessui/react";
 import { Fragment } from "react";
-import { TeacherItem } from "@/modules/teachers/types/TeacherItem";
+import { TeacherItem } from "@/features/teachers/types/TeacherItem";
 
 interface EditTeacherModalProps {
   isOpen: boolean;

@@ -1,7 +1,7 @@
 'use client'
 
-import { TeacherPayload } from "@/modules/teachers/types/TeacherPayload";
-import { TeacherResponse } from "@/modules/teachers/types/TeacherResponse";
+import { TeacherPayload } from "@/features/teachers/types/TeacherPayload";
+import { TeacherResponse } from "@/features/teachers/types/TeacherResponse";
 import { apiFetch } from "@/lib/fetcher";
 
 export async function getTeachers(): Promise<TeacherResponse[]> {

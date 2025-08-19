@@ -2,8 +2,9 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserProfileForm } from "@/modules/profile/components/UserProfileForm";
-import { ChangePasswordForm } from "@/modules/profile/components/ChangePasswordForm";
+import { UserProfileForm } from "@/features/profile/components/UserProfileForm";
+import { ChangePasswordForm } from "@/features/profile/components/ChangePasswordForm";
+import { UserSettingsForm } from "@/features/profile/components/UserSettingsForm";
 
 export default function ProfilePage() {
   return (
@@ -19,7 +20,7 @@ export default function ProfilePage() {
         <TabsList>
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="password">Contraseña</TabsTrigger>
-          <TabsTrigger value="settings" disabled>Ajustes</TabsTrigger>
+          <TabsTrigger value="settings">Ajustes</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile" className="space-y-4">
@@ -46,6 +47,20 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent>
               <ChangePasswordForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuración de la Cuenta</CardTitle>
+              <CardDescription>
+                Personaliza tu experiencia en la plataforma con estas configuraciones.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UserSettingsForm />
             </CardContent>
           </Card>
         </TabsContent>

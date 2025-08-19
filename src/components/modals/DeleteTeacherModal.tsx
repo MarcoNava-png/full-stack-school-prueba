@@ -2,7 +2,7 @@
 
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { TeacherItem } from "@/modules/teachers/types/TeacherItem";
+import { TeacherItem } from "@/features/teachers/types/TeacherItem";
 import { deleteTeacher } from "@/services/teachersService";
 import { toast } from "react-hot-toast";
 

@@ -96,24 +96,7 @@ const menuItems = [
         visible: ["admin", "teacher", "student", "parent"],
       },
     ],
-  },
-  {
-    title: "OTROS",
-    items: [
-      {
-        icon: "/profile.png",
-        label: "Perfil",
-        href: "/dashboard/profile",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/setting.png",
-        label: "Configuraciones",
-        href: "/dashboard/settings",
-        visible: ["admin", "teacher", "student", "parent"],
-      }
-    ],
-  },
+  }
 ];
 
 

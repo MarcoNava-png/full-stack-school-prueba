@@ -1,6 +1,6 @@
 "use client";
 
-import { TeacherList } from '@/modules/teachers';
+import { TeacherList } from '@/features/teachers';
 
 export default function TeachersPage() {
   return (

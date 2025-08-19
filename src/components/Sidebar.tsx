@@ -1,6 +1,7 @@
 "use client";
 
 import { role } from "@/lib/data";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
@@ -124,13 +125,24 @@ const menuItems = [
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
   return (
-    <div className="h-full overflow-y-auto pr-2">
+    <div className={`h-full overflow-y-auto ${isMobile ? 'px-1' : 'pr-2'}`}>
       <style jsx>{`
         ::-webkit-scrollbar {
           width: 6px;
@@ -149,49 +161,61 @@ const Sidebar = () => {
         }
       `}</style>
 
-      <div className="space-y-6 py-4">
+      <div className={`space-y-1 ${isMobile ? 'px-1' : 'px-2'}`}>
         {menuItems.map((section) => (
           <div key={section.title} className="space-y-1">
-            <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:block">
-              {section.title}
-            </h3>
+            {!isMobile && (
+              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {section.title}
+              </h3>
+            )}
             <div className="space-y-1">
               {section.items.map((item) => {
                 if (!item.visible.includes(role)) return null;
 
                 const active = isActive(item.href);
+                const iconSize = isMobile ? 20 : 16;
+                
                 return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors mx-1",
-                      active
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-gray-600 hover:bg-gray-100"
-                    )}
-                  >
-                    <div
+                  <div key={item.href} className="relative group">
+                    <Link
+                      href={item.href}
                       className={cn(
-                        "p-1.5 rounded-lg transition-colors mr-3",
+                        "flex items-center py-2.5 px-3 text-sm font-medium rounded-lg transition-colors",
+                        isMobile ? 'justify-center' : 'justify-start',
                         active
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-gray-100 text-gray-500 group-hover:bg-gray-200"
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-600 hover:bg-gray-100"
                       )}
                     >
-                      <Image
-                        src={item.icon}
-                        alt={item.label}
-                        width={16}
-                        height={16}
-                        className="w-4 h-4"
-                      />
-                    </div>
-                    <span className="lg:inline">{item.label}</span>
-                    <span className="lg:hidden absolute left-16 bg-gray-900 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {item.label}
-                    </span>
-                  </Link>
+                      <div
+                        className={cn(
+                          "flex items-center justify-center rounded-lg transition-colors",
+                          isMobile ? 'p-2' : 'p-1.5 mr-3',
+                          active
+                            ? "bg-blue-100 text-blue-600"
+                            : "bg-gray-100 text-gray-500 group-hover:bg-gray-200"
+                        )}
+                      >
+                        <Image
+                          src={item.icon}
+                          alt={item.label}
+                          width={iconSize}
+                          height={iconSize}
+                          className={isMobile ? 'w-5 h-5' : 'w-4 h-4'}
+                        />
+                      </div>
+                      {!isMobile && (
+                        <span className="truncate">{item.label}</span>
+                      )}
+                    </Link>
+                    
+                    {isMobile && (
+                      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs rounded py-1.5 px-2.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-lg">
+                        {item.label}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

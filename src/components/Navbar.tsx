@@ -2,39 +2,36 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { logout } from "@/services/authService";
 
 const Navbar = () => {
+  const [isMobile, setIsMobile] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  const pathname = usePathname();
+  const { handleLogout } = useAuth();
+
   const messageRef = useRef<HTMLDivElement>(null);
-  const notifyRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  // ✅ Usamos el hook de autenticación
-  const { user, handleLogout } = useAuth();
-
-  // ⏱ Cierre automático en 5 segundos
   useEffect(() => {
-    const timers: NodeJS.Timeout[] = [];
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
 
-    if (showMessages) timers.push(setTimeout(() => setShowMessages(false), 5000));
-    if (showNotifications) timers.push(setTimeout(() => setShowNotifications(false), 5000));
-    if (showProfileMenu) timers.push(setTimeout(() => setShowProfileMenu(false), 5000));
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
 
-    return () => timers.forEach(clearTimeout);
-  }, [showMessages, showNotifications, showProfileMenu]);
-
-  // ❌ Cierre si das clic fuera
-  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (messageRef.current && !messageRef.current.contains(event.target as Node)) {
         setShowMessages(false);
       }
-      if (notifyRef.current && !notifyRef.current.contains(event.target as Node)) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
         setShowNotifications(false);
       }
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
@@ -42,9 +39,19 @@ const Navbar = () => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
+
+  // Close all dropdowns when route changes
+  useEffect(() => {
+    setShowMessages(false);
+    setShowNotifications(false);
+    setShowProfileMenu(false);
+  }, [pathname]);
 
   const handleLogoutClick = async () => {
     await logout();
@@ -53,73 +60,182 @@ const Navbar = () => {
   };
 
   return (
-    <div className="bg-white flex items-center justify-between p-4 relative">
-
-      <div className="flex items-center gap-6 justify-end w-full relative">
-        <div
-          className="bg-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer"
-          onClick={() => setShowMessages((prev) => !prev)}
-        >
-          <Image src="/message.png" alt="Mensajes" width={20} height={20} />
-        </div>
-        {showMessages && (
-          <div
-            ref={messageRef}
-            className="absolute top-12 right-32 bg-white shadow-md rounded-md p-4 w-64 text-sm z-50"
-          >
-            <p>No tienes mensajes nuevos.</p>
+    <div className="bg-white border-b border-gray-200 px-4 py-3 sm:px-6">
+      <div className="flex items-center justify-end h-12">
+        {/* Right side icons */}
+        <div className="flex items-center space-x-3 sm:space-x-4">
+          {/* Mobile menu button (hidden on desktop) */}
+          <div className="lg:hidden mr-2">
+            <button
+              onClick={() => document.dispatchEvent(new CustomEvent('toggle-mobile-menu'))}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              aria-expanded="false"
+            >
+              <span className="sr-only">Abrir menú principal</span>
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
-        )}
+          {/* Messages */}
+          <div className="relative" ref={messageRef}>
+            <button
+              onClick={() => {
+                setShowMessages(!showMessages);
+                setShowNotifications(false);
+              }}
+              className="p-1.5 rounded-full text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative"
+              aria-haspopup="true"
+              aria-expanded={showMessages}
+            >
+              <span className="sr-only">Ver mensajes</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+              <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+            </button>
 
-        <div
-          className="bg-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer relative"
-          onClick={() => setShowNotifications((prev) => !prev)}
-        >
-          <Image src="/announcement.png" alt="Notificaciones" width={20} height={20} />
-          <div className="absolute -top-3 -right-3 w-5 h-5 flex items-center justify-center bg-purple-500 text-white rounded-full text-xs">
-            1
+            {showMessages && (
+              <div className="origin-top-right absolute right-0 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                <div className="py-1" role="menu" aria-orientation="vertical">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900">Mensajes</p>
+                  </div>
+                  <a href="#" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100" role="menuitem">
+                    <p className="font-medium">Nuevo mensaje de Juan</p>
+                    <p className="text-xs text-gray-500 truncate">Hola, ¿cómo estás? Necesito hablar contigo sobre...</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Hace 5 min</p>
+                  </a>
+                  <a href="#" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100" role="menuitem">
+                    <p className="font-medium">Recordatorio: Reunión</p>
+                    <p className="text-xs text-gray-500">No olvides la reunión de hoy a las 3 PM</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Hace 1 hora</p>
+                  </a>
+                  <div className="py-1.5 px-4">
+                    <a href="#" className="block text-center text-sm font-medium text-blue-600 hover:text-blue-700" role="menuitem">
+                      Ver todos los mensajes
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-        {showNotifications && (
-          <div
-            ref={notifyRef}
-            className="absolute top-12 right-20 bg-white shadow-md rounded-md p-4 w-64 text-sm z-50"
-          >
-            <p>Tienes 1 nueva notificación.</p>
+
+          {/* Notifications */}
+          <div className="relative" ref={notificationRef}>
+            <button
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                setShowMessages(false);
+              }}
+              className="p-1.5 rounded-full text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative"
+              aria-haspopup="true"
+              aria-expanded={showNotifications}
+            >
+              <span className="sr-only">Ver notificaciones</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-blue-500 ring-2 ring-white"></span>
+            </button>
+
+            {showNotifications && (
+              <div className="origin-top-right absolute right-0 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                <div className="py-1" role="menu" aria-orientation="vertical">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900">Notificaciones</p>
+                  </div>
+                  <a href="#" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100" role="menuitem">
+                    <p className="font-medium">Nueva tarea asignada</p>
+                    <p className="text-xs text-gray-500">Matemáticas: Ejercicios de álgebra</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Hace 2 horas</p>
+                  </a>
+                  <a href="#" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100" role="menuitem">
+                    <p className="font-medium">Calificación publicada</p>
+                    <p className="text-xs text-gray-500">Historia: 9.5 en el examen parcial</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Ayer</p>
+                  </a>
+                  <div className="py-1.5 px-4">
+                    <a href="#" className="block text-center text-sm font-medium text-blue-600 hover:text-blue-700" role="menuitem">
+                      Ver todas las notificaciones
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
 
-        <div className="flex flex-col items-end text-right">
-          <span className="text-xs font-medium">{user?.Correo || "Invitado"}</span>
-          <span className="text-[10px] text-gray-500">{user ? "Activo" : "Desconectado"}</span>
-        </div>
-
-        <Image
-          src="/avatar.png"
-          alt="Perfil"
-          width={36}
-          height={36}
-          className="rounded-full cursor-pointer"
-          onClick={() => setShowProfileMenu((prev) => !prev)}
-        />
-        {showProfileMenu && (
-          <div
-            ref={profileRef}
-            className="absolute top-14 right-2 bg-white shadow-md rounded-md p-4 w-40 text-sm z-50"
-          >
-            <ul className="space-y-2">
-              <li className="cursor-pointer hover:text-indigo-600">Mi Perfil</li>
-              <li className="cursor-pointer hover:text-indigo-600">Configuración</li>
-              <li
-                className="cursor-pointer hover:text-red-500"
-                onClick={handleLogoutClick}
+          {/* Profile dropdown */}
+          <div className="relative ml-3" ref={profileRef}>
+            <div>
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                id="user-menu"
+                aria-haspopup="true"
+                aria-expanded={showProfileMenu}
               >
-                Cerrar sesión
-              </li>
-            </ul>
-          </div>
-        )}
+                <span className="sr-only">Abrir menú de usuario</span>
+                <div className="relative">
+                  <Image
+                    className="h-8 w-8 rounded-full border-2 border-gray-300"
+                    src="/avatar.png"
+                    alt=""
+                    width={32}
+                    height={32}
+                  />
+                  <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
+                </div>
+                {!isMobile && (
+                  <div className="ml-2 text-left">
+                    <p className="text-sm font-medium text-gray-700 truncate max-w-[120px]">Nombre del Usuario</p>
+                    <p className="text-xs text-gray-500 truncate max-w-[120px]">usuario@ejemplo.com</p>
+                  </div>
+                )}
+                <svg className="ml-1 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
 
+            {showProfileMenu && (
+              <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50" role="menu" aria-orientation="vertical" aria-labelledby="user-menu">
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-900">Hola, Usuario</p>
+                  <p className="text-xs text-gray-500 truncate">usuario@ejemplo.com</p>
+                </div>
+                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                  <div className="flex items-center">
+                    <svg className="mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Mi perfil
+                  </div>
+                </a>
+                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                  <div className="flex items-center">
+                    <svg className="mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Configuración
+                  </div>
+                </a>
+                <div className="border-t border-gray-100 my-1"></div>
+                <button
+                  onClick={handleLogoutClick}
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                  role="menuitem"
+                >
+                  <svg className="mr-2 h-4 w-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

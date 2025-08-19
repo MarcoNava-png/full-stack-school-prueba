@@ -54,19 +54,8 @@ const Navbar = () => {
 
   return (
     <div className="bg-white flex items-center justify-between p-4 relative">
-      {/* SEARCH BAR */}
-      <div className="hidden md:flex items-center gap-2 text-xs rounded-full ring-[1.5px] ring-gray-300 px-2">
-        <Image src="/search.png" alt="Buscar" width={14} height={14} />
-        <input
-          type="text"
-          placeholder="Buscar..."
-          className="text-sm outline-none w-[200px] p-2 bg-transparent"
-        />
-      </div>
 
-      {/* ICONS AND USER */}
       <div className="flex items-center gap-6 justify-end w-full relative">
-        {/* Mensajes */}
         <div
           className="bg-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer"
           onClick={() => setShowMessages((prev) => !prev)}
@@ -82,7 +71,6 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* Notificaciones */}
         <div
           className="bg-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer relative"
           onClick={() => setShowNotifications((prev) => !prev)}
@@ -101,9 +89,7 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* Perfil */}
         <div className="flex flex-col items-end text-right">
-          {/* ✅ Mostramos datos del usuario si está logueado */}
           <span className="text-xs font-medium">{user?.Correo || "Invitado"}</span>
           <span className="text-[10px] text-gray-500">{user ? "Activo" : "Desconectado"}</span>
         </div>
@@ -116,7 +102,6 @@ const Navbar = () => {
           className="rounded-full cursor-pointer"
           onClick={() => setShowProfileMenu((prev) => !prev)}
         />
-
         {showProfileMenu && (
           <div
             ref={profileRef}
@@ -134,7 +119,7 @@ const Navbar = () => {
             </ul>
           </div>
         )}
-        
+
       </div>
     </div>
   );

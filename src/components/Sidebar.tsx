@@ -103,21 +103,15 @@ const menuItems = [
       {
         icon: "/profile.png",
         label: "Perfil",
-        href: "/profile",
+        href: "/dashboard/profile",
         visible: ["admin", "teacher", "student", "parent"],
       },
       {
         icon: "/setting.png",
         label: "Configuraciones",
-        href: "/settings",
+        href: "/dashboard/settings",
         visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/logout.png",
-        label: "Cerrar Sesion",
-        href: "/logout",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
+      }
     ],
   },
 ];

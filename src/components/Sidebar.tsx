@@ -14,7 +14,7 @@ const menuItems = [
       {
         icon: "/home.png",
         label: "Inicio",
-        href: "/",
+        href: "/dashboard",
         visible: ["admin", "teacher", "student", "parent"],
       },
       {
@@ -131,14 +131,17 @@ const Sidebar = () => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const isActive = (href: string) => {
-    return pathname === href || pathname.startsWith(`${href}/`);
+    if (href === '/dashboard') {
+      return pathname === href || pathname === '/';
+    }
+    return pathname === href || (pathname.startsWith(`${href}/`) && href !== '/');
   };
 
   return (
@@ -175,7 +178,7 @@ const Sidebar = () => {
 
                 const active = isActive(item.href);
                 const iconSize = isMobile ? 20 : 16;
-                
+
                 return (
                   <div key={item.href} className="relative group">
                     <Link
@@ -209,7 +212,7 @@ const Sidebar = () => {
                         <span className="truncate">{item.label}</span>
                       )}
                     </Link>
-                    
+
                     {isMobile && (
                       <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs rounded py-1.5 px-2.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-lg">
                         {item.label}

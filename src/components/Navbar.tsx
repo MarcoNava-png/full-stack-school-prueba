@@ -64,19 +64,7 @@ const Navbar = () => {
       <div className="flex items-center justify-end h-12">
         {/* Right side icons */}
         <div className="flex items-center space-x-3 sm:space-x-4">
-          {/* Mobile menu button (hidden on desktop) */}
-          <div className="lg:hidden mr-2">
-            <button
-              onClick={() => document.dispatchEvent(new CustomEvent('toggle-mobile-menu'))}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-              aria-expanded="false"
-            >
-              <span className="sr-only">Abrir menú principal</span>
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
+          
           {/* Messages */}
           <div className="relative" ref={messageRef}>
             <button

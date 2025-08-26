@@ -4,21 +4,18 @@ import { TeacherPayload } from "@/features/teachers/types/TeacherPayload";
 import { TeacherResponse } from "@/features/teachers/types/TeacherResponse";
 import { apiFetch } from "@/lib/fetcher";
 
-export async function getTeachers(): Promise<TeacherResponse[]> {
-  const res = await apiFetch<TeacherResponse[]>(`/Profesor`);
-  return res;
+export async function getTeachers(): Promise<TeacherResponse> {
+  return await apiFetch<TeacherResponse>(`/Profesor`);
 }
 
 export async function createTeacher(data: TeacherPayload): Promise<TeacherResponse> {
-  const res = await apiFetch<TeacherResponse>(`/Profesor`, {
+  return await apiFetch<TeacherResponse>(`/Profesor`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
   });
-
-  return res;
 }
 
 export async function updateTeacher(id: string | number, data: Partial<TeacherPayload>): Promise<TeacherResponse> {

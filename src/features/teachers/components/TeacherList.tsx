@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { useTeachers } from '../hooks';
 import { DeleteTeacherModal } from './modals/DeleteTeacherModal';
-import type { TeacherResponse } from '../types/TeacherResponse';
+import type { TeacherItem, TeacherResponse } from '../types/TeacherResponse';
 import type { TeacherPayload } from '../types/TeacherPayload';
 import { TeacherFormModal } from './modals/TeacherFormModal';
 
@@ -14,7 +14,7 @@ export function TeacherList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState<TeacherResponse | null>(null);
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherItem | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const {
@@ -31,13 +31,13 @@ export function TeacherList() {
     setSearchTerm(value);
   };
 
-  const handleEdit = (teacher: TeacherResponse) => {
+  const handleEdit = (teacher: TeacherItem) => {
     setSelectedTeacher(teacher);
     setIsEditing(true);
     setIsFormModalOpen(true);
   };
 
-  const handleDeleteClick = (teacher: TeacherResponse) => {
+  const handleDeleteClick = (teacher: TeacherItem) => {
     setSelectedTeacher(teacher);
     setIsDeleteModalOpen(true);
   };
@@ -55,27 +55,28 @@ export function TeacherList() {
   };
 
   const filteredTeachers = useMemo(() => {
-    if (!searchTerm.trim()) return teachers;
+    if (!searchTerm.trim()) return teachers?.items;
 
     const term = searchTerm.toLowerCase();
-    return teachers.filter(teacher =>
+    return teachers?.items?.filter(teacher =>
     (teacher.persona?.nombre?.toLowerCase().includes(term) ||
       teacher.persona?.apellidoPaterno?.toLowerCase().includes(term) ||
-      teacher.persona?.correoElectronico?.toLowerCase().includes(term) ||
+      // teacher.persona?.correoElectronico?.toLowerCase().includes(term) ||
       teacher.especialidad?.toLowerCase().includes(term))
     );
-  }, [teachers, searchTerm]);
+  }, [teachers?.items, searchTerm]);
 
-  const getFullName = (teacher: TeacherResponse) => {
+  const getFullName = (data: TeacherItem) => {
+    let teacher = data;
     return [
-      teacher.persona?.nombre,
-      teacher.persona?.apellidoPaterno,
-      teacher.persona?.apellidoMaterno
+      teacher?.persona?.nombre,
+      teacher?.persona?.apellidoPaterno,
+      teacher?.persona?.apellidoMaterno
     ].filter(Boolean).join(' ');
   };
 
-  const mapToTeacherFormData = (teacher: TeacherResponse): TeacherPayload => ({
-    email: teacher.persona?.correoElectronico || '',
+  const mapToTeacherFormData = (teacher: TeacherItem): TeacherPayload => ({
+    email: '',
     password: '',
     nombre: teacher.persona?.nombre || '',
     apellidoPaterno: teacher.persona?.apellidoPaterno || '',
@@ -101,14 +102,14 @@ export function TeacherList() {
     }
   };
 
-  if (loading && !teachers.length) {
-    return (
-      <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        <span className="ml-4">Cargando profesores...</span>
-      </div>
-    );
-  }
+  // if (loading && !teachers.length) {
+  //   return (
+  //     <div className="flex justify-center items-center p-8">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  //       <span className="ml-4">Cargando profesores...</span>
+  //     </div>
+  //   );
+  // }
 
   if (error) {
     return (
@@ -172,7 +173,7 @@ export function TeacherList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTeachers.map((teacher) => (
+            {filteredTeachers?.map((teacher: TeacherItem) => (
               <TableRow key={teacher.id} className="hover:bg-gray-50">
                 <TableCell className="font-medium">
                   <div className="flex items-center">
@@ -184,12 +185,12 @@ export function TeacherList() {
                         {getFullName(teacher) || 'Sin nombre'}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {teacher.persona?.telefono || 'Sin teléfono'}
+                        {'Sin teléfono'}
                       </div>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-sm text-gray-900">{teacher.persona?.correoElectronico || 'Sin email'}</TableCell>
+                <TableCell className="text-sm text-gray-900">{'Sin email'}</TableCell>
                 <TableCell className="text-sm text-gray-500">{teacher.especialidad || 'No especificada'}</TableCell>
                 <TableCell>
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -246,7 +247,7 @@ export function TeacherList() {
             setSelectedTeacher(null);
           }}
           onConfirm={handleDeleteConfirm}
-          teacherName={selectedTeacher.persona?.nombre || 'este profesor'}
+          teacherName={ 'este profesor'}
         />
       )}
     </div>

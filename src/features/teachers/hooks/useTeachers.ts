@@ -4,7 +4,7 @@ import { TeacherPayload } from '../types/TeacherPayload';
 import { createTeacher, deleteTeacher, getTeachers, updateTeacher } from '../services/teachersService';
 
 export const useTeachers = () => {
-  const [teachers, setTeachers] = useState<TeacherResponse[]>([]);
+  const [teachers, setTeachers] = useState<TeacherResponse>();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +29,7 @@ export const useTeachers = () => {
     try {
       setLoading(true);
       const newTeacher = await createTeacher(teacherData);
-      setTeachers(prev => [newTeacher, ...prev]);
+      // setTeachers(prev => [newTeacher, ...prev]);
       return newTeacher;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear el profesor');
@@ -43,9 +43,9 @@ export const useTeachers = () => {
     try {
       setLoading(true);
       const updatedTeacher = await updateTeacher(id, teacherData);
-      setTeachers(prev =>
-        prev.map(teacher => teacher.id.toString() === id ? updatedTeacher : teacher)
-      );
+      // setTeachers(prev =>
+      //   prev.map(teacher => teacher.id.toString() === id ? updatedTeacher : teacher)
+      // );
       return updatedTeacher;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al actualizar el profesor');
@@ -59,7 +59,7 @@ export const useTeachers = () => {
     try {
       setLoading(true);
       await deleteTeacher(id);
-      setTeachers(prev => prev.filter(teacher => teacher.id.toString() !== id));
+      // setTeachers(prev => prev.filter(teacher => teacher.id.toString() !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al eliminar el profesor');
       throw err;

@@ -25,6 +25,12 @@ const menuItems = [
       },
       {
         icon: "/student.png",
+        label: "Coordinadores",
+        href: "/dashboard/list/coordinators",
+        visible: ["admin"],
+      },
+      {
+        icon: "/student.png",
         label: "Estudiantes",
         href: "/dashboard/list/student",
         visible: ["admin", "teacher"],

@@ -60,7 +60,7 @@ export const useCoordinators = () => {
     try {
       setLoading(true);
       await deleteCoordinator(id);
-      // setCoordinators(prev => prev.filter(Coordinator => Coordinator.id.toString() !== id));
+      setCoordinators(prev => prev?.filter(coordinator => coordinator.id.toString() !== id.toString()));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al eliminar el profesor');
       throw err;

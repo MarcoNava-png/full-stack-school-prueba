@@ -6,7 +6,7 @@ export async function apiFetch<T>(
     ? localStorage.getItem("token")
     : null;
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://localhost:7169'}${url}`, {
+  const res: Response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://localhost:7169'}${url}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -17,6 +17,13 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     throw new Error(`Error en la petición: ${res.statusText}`);
+  }
+
+  if (res.status === 204) {
+    if (url.toLowerCase().endsWith("s")) {
+      return [] as T;
+    }
+    return undefined as T;
   }
 
   return res.json() as Promise<T>;

@@ -19,7 +19,6 @@ export function TeacherList() {
 
   const {
     teachers,
-    loading,
     error,
     deleteTeacherById,
     createTeacherData,
@@ -55,16 +54,15 @@ export function TeacherList() {
   };
 
   const filteredTeachers = useMemo(() => {
-    if (!searchTerm.trim()) return teachers?.items;
+    if (!searchTerm.trim()) return teachers;
 
     const term = searchTerm.toLowerCase();
-    return teachers?.items?.filter(teacher =>
+    return teachers?.filter(teacher =>
     (teacher.persona?.nombre?.toLowerCase().includes(term) ||
       teacher.persona?.apellidoPaterno?.toLowerCase().includes(term) ||
-      // teacher.persona?.correoElectronico?.toLowerCase().includes(term) ||
       teacher.especialidad?.toLowerCase().includes(term))
     );
-  }, [teachers?.items, searchTerm]);
+  }, [teachers, searchTerm]);
 
   const getFullName = (data: TeacherItem) => {
     let teacher = data;
@@ -87,7 +85,6 @@ export function TeacherList() {
   });
 
   const handleFormSubmit = async (data: TeacherPayload) => {
-    console.log(data);
     try {
       if (isEditing && selectedTeacher) {
         await updateTeacherData(selectedTeacher.id.toString(), data);
@@ -101,15 +98,6 @@ export function TeacherList() {
       console.error('Error saving teacher:', error);
     }
   };
-
-  // if (loading && !teachers.length) {
-  //   return (
-  //     <div className="flex justify-center items-center p-8">
-  //       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-  //       <span className="ml-4">Cargando profesores...</span>
-  //     </div>
-  //   );
-  // }
 
   if (error) {
     return (

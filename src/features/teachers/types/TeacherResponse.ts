@@ -7,7 +7,7 @@ export interface TeacherResponse {
 }
 
 export interface TeacherItem {
-  id: number,
+  id: string,
   especialidad: string,
   persona: {
     id: string,

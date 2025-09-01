@@ -29,9 +29,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { TeacherPayload } from '../../types/TeacherPayload';
+import type { AdmissionPayload } from '../../types/AdmisionesPayload';
 
-// ——— Esquema base (sin password) ———
+/* ===== Schemas ===== */
 const baseSchema = z.object({
   email: z.string().email({ message: 'Por favor ingresa un correo electrónico válido.' }),
   nombre: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -39,16 +39,14 @@ const baseSchema = z.object({
   apellidoMaterno: z.string().min(2, { message: 'El apellido materno es requerido.' }),
   calle: z.string().min(3, { message: 'La calle es requerida.' }),
   numero: z.string().min(1, { message: 'El número es requerido.' }),
-  // Fecha en formato YYYY-MM-DD como string
-  fechaNacimiento: z.string().min(1, { message: 'La fecha de nacimiento es requerida.' }),
-  // Coerciona a number
+  fechaNacimiento: z.string().min(1, { message: 'La fecha de nacimiento es requerida.' }), // YYYY-MM-DD
   personaGeneroId: z.coerce.number().min(1, { message: 'Por favor selecciona un género.' }),
-  especialidad: z.string().min(2, { message: 'La especialidad es requerida.' }),
-  // Coerciona a number y pide ≥ 1
   codigoPostalId: z.coerce.number().int().min(1, { message: 'El código postal (ID) es requerido.' }),
+
+  // Opcional, sólo si tu API ya lo acepta
+  planEstudiosId: z.coerce.number().int().min(1).optional(),
 });
 
-// ——— Crear: password requerida ———
 const createSchema = baseSchema.extend({
   password: z.string()
     .min(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
@@ -57,33 +55,30 @@ const createSchema = baseSchema.extend({
     }),
 });
 
-// ——— Editar: password opcional ———
 const editSchema = baseSchema.extend({
   password: z.string().optional(),
 });
 
-// Igualamos los tipos del form con el payload esperado
-type TeacherFormValues = z.infer<typeof createSchema> | z.infer<typeof editSchema>;
+type AdmissionFormValues = z.infer<typeof createSchema> | z.infer<typeof editSchema>;
 
-interface TeacherFormModalProps {
+interface AdmissionFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: TeacherPayload) => Promise<void>;
-  teacher?: TeacherPayload;   // cuando editas
+  onSubmit: (data: AdmissionPayload) => Promise<void>;
+  admission?: AdmissionPayload;   // cuando editas
   isSubmitting?: boolean;
 }
 
-export function TeacherFormModal({
+export function AdmissionFormModal({
   isOpen,
   onClose,
   onSubmit,
-  teacher,
+  admission,
   isSubmitting = false,
-}: TeacherFormModalProps) {
+}: AdmissionFormModalProps) {
+  const isEdit = Boolean(admission);
 
-  const isEdit = Boolean(teacher);
-
-  const form = useForm<TeacherFormValues>({
+  const form = useForm<AdmissionFormValues>({
     resolver: zodResolver(isEdit ? editSchema : createSchema),
     defaultValues: {
       email: '',
@@ -95,25 +90,25 @@ export function TeacherFormModal({
       calle: '',
       numero: '',
       personaGeneroId: 1,
-      especialidad: '',
       codigoPostalId: 0,
+      planEstudiosId: undefined,
     },
   });
 
   useEffect(() => {
-    if (teacher) {
+    if (admission) {
       form.reset({
-        email: teacher.email ?? '',
-        password: '', // opcional en edición
-        nombre: teacher.nombre ?? '',
-        apellidoPaterno: teacher.apellidoPaterno ?? '',
-        apellidoMaterno: teacher.apellidoMaterno ?? '',
-        fechaNacimiento: teacher.fechaNacimiento ?? new Date().toISOString().split('T')[0],
-        calle: teacher.calle ?? '',
-        numero: teacher.numero ?? '',
-        personaGeneroId: teacher.personaGeneroId ?? 1,
-        especialidad: teacher.especialidad ?? '',
-        codigoPostalId: teacher.codigoPostalId ?? 0, // ✅ nombre correcto
+        email: admission.email ?? '',
+        password: '', // opcional al editar
+        nombre: admission.nombre ?? '',
+        apellidoPaterno: admission.apellidoPaterno ?? '',
+        apellidoMaterno: admission.apellidoMaterno ?? '',
+        fechaNacimiento: admission.fechaNacimiento ?? new Date().toISOString().split('T')[0],
+        calle: admission.calle ?? '',
+        numero: admission.numero ?? '',
+        personaGeneroId: admission.personaGeneroId ?? 1,
+        codigoPostalId: admission.codigoPostalId ?? 0,
+        planEstudiosId: admission.planEstudiosId, // puede venir undefined
       });
     } else {
       form.reset({
@@ -126,29 +121,28 @@ export function TeacherFormModal({
         calle: '',
         numero: '',
         personaGeneroId: 1,
-        especialidad: '',
-        codigoPostalId: 0, // ✅ nombre correcto
+        codigoPostalId: 0,
+        planEstudiosId: undefined,
       });
     }
-  }, [teacher, form, isOpen]);
+  }, [admission, form, isOpen]);
 
-  const handleSubmit = async (data: TeacherFormValues) => {
+  const handleSubmit = async (data: AdmissionFormValues) => {
     try {
-      // `data` ya trae codigoPostalId y personaGeneroId como number por el z.coerce
-      await onSubmit(data as TeacherPayload);
+      await onSubmit(data as AdmissionPayload);
       form.reset();
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Form submission error:', error);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className='max-w-3xl'>
+      <DialogContent className="max-w-[95vw] sm:max-w-[900px] md:sm:max-w-[1100px] lg:sm:max-w-[1280px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Editar Profesor' : 'Nuevo Profesor'}</DialogTitle>
+          <DialogTitle>{isEdit ? 'Editar Aspirante' : 'Nuevo Aspirante'}</DialogTitle>
           <DialogDescription>
-            {isEdit ? 'Actualiza la información del profesor.' : 'Completa la información para agregar un nuevo profesor.'}
+            {isEdit ? 'Actualiza la información del aspirante.' : 'Completa la información para agregar un nuevo aspirante.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -275,7 +269,6 @@ export function TeacherFormModal({
                       <Input
                         type="number"
                         {...field}
-                        // Nos aseguramos de enviar number al form state
                         onChange={(e) => field.onChange(Number(e.target.value))}
                         min={1}
                         placeholder="Ej. 123"
@@ -286,14 +279,24 @@ export function TeacherFormModal({
                 )}
               />
 
+              {/* Opcional: Plan de estudios */}
               <FormField
                 control={form.control}
-                name="especialidad"
+                name="planEstudiosId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Especialidad</FormLabel>
+                    <FormLabel>Plan de estudios (ID) <span className="text-xs text-gray-500">(opcional)</span></FormLabel>
                     <FormControl>
-                      <Input placeholder="Especialidad del profesor" {...field} />
+                      <Input
+                        type="number"
+                        value={field.value ?? ''} // soporta undefined
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          field.onChange(v === '' ? undefined : Number(v));
+                        }}
+                        min={1}
+                        placeholder="Ej. 5"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -344,7 +347,7 @@ export function TeacherFormModal({
                     </svg>
                     Guardando...
                   </>
-                ) : isEdit ? 'Actualizar profesor' : 'Agregar profesor'}
+                ) : isEdit ? 'Actualizar aspirante' : 'Agregar aspirante'}
               </Button>
             </DialogFooter>
           </form>

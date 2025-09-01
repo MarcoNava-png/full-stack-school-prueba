@@ -80,6 +80,9 @@ export function TeacherList() {
     apellidoPaterno: teacher.persona?.apellidoPaterno || '',
     apellidoMaterno: teacher.persona?.apellidoMaterno || '',
     fechaNacimiento: teacher.persona?.fechaNacimiento || new Date().toISOString().split('T')[0],
+    calle: teacher.persona?.direccion?.calle || '',    
+    numero: teacher.persona?.direccion?.numero || '',  
+    codigoPostalId: teacher.persona?.direccion?.codigoPostalId ?? 0,
     personaGeneroId: teacher.persona?.personaGeneroId || 1,
     especialidad: teacher.especialidad || ''
   });

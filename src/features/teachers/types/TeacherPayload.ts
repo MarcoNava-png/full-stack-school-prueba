@@ -5,6 +5,9 @@ export interface TeacherPayload {
   apellidoPaterno: string,
   apellidoMaterno: string,
   fechaNacimiento: string,
+  calle: string,
+  numero: string,
+  codigoPostalId: number,
   personaGeneroId: number,
   especialidad: string
 }

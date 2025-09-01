@@ -18,6 +18,12 @@ const menuItems = [
         visible: ["admin", "teacher", "student", "parent"],
       },
       {
+        icon: "/student.png",
+        label: "Admisiones",
+        href: "/dashboard/list/admissions",
+        visible: ["admin"],
+      },
+      {
         icon: "/teacher.png",
         label: "Profesores",
         href: "/dashboard/list/teachers",

@@ -9,11 +9,7 @@ export interface Admission {
     nombre: string;
     apellidoPaterno: string;
     apellidoMaterno: string;
-
-    // En la API de Aspirante viene ISO string
     fechaNacimiento: string;
-
-    // Estos campos no siempre vienen en Aspirante -> los hacemos opcionales
     correoElectronico?: string;
     telefono?: string;
     fechaCreacion?: string;

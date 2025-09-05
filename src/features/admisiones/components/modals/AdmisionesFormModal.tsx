@@ -39,25 +39,19 @@ const baseSchema = z.object({
   apellidoMaterno: z.string().min(2, { message: 'El apellido materno es requerido.' }),
   calle: z.string().min(3, { message: 'La calle es requerida.' }),
   numero: z.string().min(1, { message: 'El número es requerido.' }),
-  fechaNacimiento: z.string().min(1, { message: 'La fecha de nacimiento es requerida.' }), // YYYY-MM-DD
+  fechaNacimiento: z.string().min(1, { message: 'La fecha de nacimiento es requerida.' }),
   personaGeneroId: z.coerce.number().min(1, { message: 'Por favor selecciona un género.' }),
   codigoPostalId: z.coerce.number().int().min(1, { message: 'El código postal (ID) es requerido.' }),
-
-  // Opcional, sólo si tu API ya lo acepta
   planEstudiosId: z.coerce.number().int().min(1).optional(),
 });
 
 const createSchema = baseSchema.extend({
-  password: z.string()
-    .min(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
-    .regex(/^(?=.*[a-z])(?=.*[A-Z]).*$/, {
-      message: 'La contraseña debe incluir al menos una letra mayúscula y una letra minúscula.',
-    }),
+  password: z
+    .string()
+    .min(8, { message: 'Mínimo 8 caracteres.' })
+    .regex(/^(?=.*[a-z])(?=.*[A-Z]).*$/, { message: 'Incluye mayúscula y minúscula.' }),
 });
-
-const editSchema = baseSchema.extend({
-  password: z.string().optional(),
-});
+const editSchema = baseSchema.extend({ password: z.string().optional() });
 
 type AdmissionFormValues = z.infer<typeof createSchema> | z.infer<typeof editSchema>;
 
@@ -65,7 +59,7 @@ interface AdmissionFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: AdmissionPayload) => Promise<void>;
-  admission?: AdmissionPayload;   // cuando editas
+  admission?: AdmissionPayload;
   isSubmitting?: boolean;
 }
 
@@ -99,7 +93,7 @@ export function AdmissionFormModal({
     if (admission) {
       form.reset({
         email: admission.email ?? '',
-        password: '', // opcional al editar
+        password: '',
         nombre: admission.nombre ?? '',
         apellidoPaterno: admission.apellidoPaterno ?? '',
         apellidoMaterno: admission.apellidoMaterno ?? '',
@@ -108,7 +102,7 @@ export function AdmissionFormModal({
         numero: admission.numero ?? '',
         personaGeneroId: admission.personaGeneroId ?? 1,
         codigoPostalId: admission.codigoPostalId ?? 0,
-        planEstudiosId: admission.planEstudiosId, // puede venir undefined
+        planEstudiosId: admission.planEstudiosId,
       });
     } else {
       form.reset({
@@ -128,230 +122,319 @@ export function AdmissionFormModal({
   }, [admission, form, isOpen]);
 
   const handleSubmit = async (data: AdmissionFormValues) => {
-    try {
-      await onSubmit(data as AdmissionPayload);
-      form.reset();
-    } catch (error) {
-      console.error('Form submission error:', error);
-    }
+    await onSubmit(data as AdmissionPayload);
+    form.reset();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[900px] md:sm:max-w-[1100px] lg:sm:max-w-[1280px] max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? 'Editar Aspirante' : 'Nuevo Aspirante'}</DialogTitle>
-          <DialogDescription>
-            {isEdit ? 'Actualiza la información del aspirante.' : 'Completa la información para agregar un nuevo aspirante.'}
+      <DialogContent
+        className="
+          w-[98vw] h-[96vh] max-w-none max-h-none
+          p-0 bg-white rounded-xl shadow-xl
+          overflow-hidden flex flex-col
+        "
+      >
+        {/* Header compacto */}
+        <DialogHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
+          <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900">
+            {isEdit ? 'Editar Aspirante' : 'Nuevo Aspirante'}
+          </DialogTitle>
+          <DialogDescription className="text-sm text-gray-600 mt-1">
+            {isEdit ? 'Actualiza la información' : 'Completa los datos requeridos'}
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="nombre"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nombre" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="apellidoPaterno"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Apellido Paterno</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Apellido paterno" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="apellidoMaterno"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Apellido Materno</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Apellido materno" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="fechaNacimiento"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fecha de Nacimiento</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="personaGeneroId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Género</FormLabel>
-                    <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      value={field.value?.toString()}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona un género" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="1">Masculino</SelectItem>
-                        <SelectItem value="2">Femenino</SelectItem>
-                        <SelectItem value="3">Otro</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="calle"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Calle</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Calle..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="numero"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Número..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="codigoPostalId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Código Postal (ID)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        min={1}
-                        placeholder="Ej. 123"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Opcional: Plan de estudios */}
-              <FormField
-                control={form.control}
-                name="planEstudiosId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Plan de estudios (ID) <span className="text-xs text-gray-500">(opcional)</span></FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        value={field.value ?? ''} // soporta undefined
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          field.onChange(v === '' ? undefined : Number(v));
-                        }}
-                        min={1}
-                        placeholder="Ej. 5"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="col-span-3">
-                    <FormLabel>Correo electrónico</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="email@ejemplo.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {!isEdit && (
+        {/* Body - Sin scroll, todo visible */}
+        <div className="flex-1 px-4 sm:px-6 py-4 sm:py-6 min-h-0">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="h-full">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-4 lg:gap-x-6 gap-y-4 sm:gap-y-5 h-full">
+                
+                {/* Nombre */}
                 <FormField
                   control={form.control}
-                  name="password"
+                  name="nombre"
                   render={({ field }) => (
-                    <FormItem className="col-span-3">
-                      <FormLabel>Contraseña</FormLabel>
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                        Nombre *
+                      </FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••" {...field} />
+                        <Input 
+                          {...field} 
+                          placeholder="Nombre" 
+                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
+                        />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
-              )}
-            </div>
 
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="min-w-[100px]">
-                {isSubmitting ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Guardando...
-                  </>
-                ) : isEdit ? 'Actualizar aspirante' : 'Agregar aspirante'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                {/* Apellido Paterno */}
+                <FormField
+                  control={form.control}
+                  name="apellidoPaterno"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                        Apellido Paterno *
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="Apellido paterno" 
+                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Apellido Materno */}
+                <FormField
+                  control={form.control}
+                  name="apellidoMaterno"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                        Apellido Materno *
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="Apellido materno" 
+                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Fecha de Nacimiento */}
+                <FormField
+                  control={form.control}
+                  name="fechaNacimiento"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                        Fecha Nacimiento *
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date" 
+                          {...field} 
+                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Género */}
+                <FormField
+                  control={form.control}
+                  name="personaGeneroId"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                        Género *
+                      </FormLabel>
+                      <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                        <FormControl>
+                          <SelectTrigger className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400">
+                            <SelectValue placeholder="Género" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">Masculino</SelectItem>
+                          <SelectItem value="2">Femenino</SelectItem>
+                          <SelectItem value="3">Otro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Calle */}
+                <FormField
+                  control={form.control}
+                  name="calle"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                        Calle *
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="Calle" 
+                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Número */}
+                <FormField
+                  control={form.control}
+                  name="numero"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                        Número *
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="Número" 
+                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Código Postal */}
+                <FormField
+                  control={form.control}
+                  name="codigoPostalId"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                        Código Postal (ID) *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          value={field.value}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          min={1}
+                          placeholder="C.P."
+                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Plan de Estudios */}
+                <FormField
+                  control={form.control}
+                  name="planEstudiosId"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                        Plan Estudios (ID)
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          value={field.value ?? ''}
+                          onChange={(e) =>
+                            field.onChange(e.target.value === '' ? undefined : Number(e.target.value))
+                          }
+                          min={1}
+                          placeholder="Plan"
+                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Email - Campo más ancho */}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1 col-span-2 sm:col-span-3 lg:col-span-2">
+                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                        Correo Electrónico *
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="email" 
+                          {...field} 
+                          placeholder="correo@ejemplo.com" 
+                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Password - solo para crear, campo más ancho */}
+                {!isEdit && (
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1 col-span-2 sm:col-span-3 lg:col-span-2">
+                        <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
+                          Contraseña *
+                        </FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password" 
+                            {...field} 
+                            placeholder="••••••••" 
+                            className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
+                          />
+                        </FormControl>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </form>
+          </Form>
+        </div>
+
+        {/* Footer compacto */}
+        <DialogFooter className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50/50 flex-shrink-0">
+          <div className="flex gap-3 sm:gap-4 w-full sm:w-auto sm:ml-auto">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose} 
+              className="h-9 sm:h-10 px-4 sm:px-6 rounded-lg border-gray-300 hover:bg-gray-50 text-sm font-medium flex-1 sm:flex-none"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting} 
+              onClick={form.handleSubmit(handleSubmit)}
+              className="h-10 sm:h-11 px-4 sm:px-6 rounded-lg bg-black hover:bg-gray-800 text-sm font-medium flex-1 sm:flex-none min-w-[120px] sm:min-w-[140px]"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 border-2 border-black border-t-black rounded-full animate-spin" />
+                  <span className="hidden sm:inline">Guardando...</span>
+                  <span className="sm:hidden">...</span>
+                </div>
+              ) : (
+                <span className="truncate">
+                  {isEdit ? 'Actualizar' : 'Agregar'}
+                  <span className="hidden sm:inline"> Aspirante</span>
+                </span>
+              )}
+            </Button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

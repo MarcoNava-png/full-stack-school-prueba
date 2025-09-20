@@ -1,6 +1,6 @@
 const Page = () => {
   return (
-    <div className=''>Listado de materias</div>
+    <div className=''>Gestión De Directores</div>
   );
 };
 

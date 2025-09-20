@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/select';
 import type { AdmissionPayload } from '../../types/AdmisionesPayload';
 
-/* ===== Schemas ===== */
+/* ===== Schemas (sin planEstudios*) ===== */
 const baseSchema = z.object({
   email: z.string().email({ message: 'Por favor ingresa un correo electrónico válido.' }),
   nombre: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -42,7 +42,9 @@ const baseSchema = z.object({
   fechaNacimiento: z.string().min(1, { message: 'La fecha de nacimiento es requerida.' }),
   personaGeneroId: z.coerce.number().min(1, { message: 'Por favor selecciona un género.' }),
   codigoPostalId: z.coerce.number().int().min(1, { message: 'El código postal (ID) es requerido.' }),
-  planEstudiosId: z.coerce.number().int().min(1).optional(),
+
+  // opcional: si lo mandas, el back lo usará; si no, ignóralo
+  programaId: z.coerce.number().int().min(1).optional(),
 });
 
 const createSchema = baseSchema.extend({
@@ -85,7 +87,7 @@ export function AdmissionFormModal({
       numero: '',
       personaGeneroId: 1,
       codigoPostalId: 0,
-      planEstudiosId: undefined,
+      programaId: undefined,
     },
   });
 
@@ -102,7 +104,7 @@ export function AdmissionFormModal({
         numero: admission.numero ?? '',
         personaGeneroId: admission.personaGeneroId ?? 1,
         codigoPostalId: admission.codigoPostalId ?? 0,
-        planEstudiosId: admission.planEstudiosId,
+        programaId: (admission as any).programaId, // opcional si lo traes al editar
       });
     } else {
       form.reset({
@@ -116,13 +118,18 @@ export function AdmissionFormModal({
         numero: '',
         personaGeneroId: 1,
         codigoPostalId: 0,
-        planEstudiosId: undefined,
+        programaId: undefined,
       });
     }
   }, [admission, form, isOpen]);
 
   const handleSubmit = async (data: AdmissionFormValues) => {
-    await onSubmit(data as AdmissionPayload);
+    // no mandes keys undefined
+    const cleaned: AdmissionPayload = Object.fromEntries(
+      Object.entries(data as AdmissionPayload).filter(([, v]) => v !== undefined)
+    ) as AdmissionPayload;
+
+    await onSubmit(cleaned);
     form.reset();
   };
 
@@ -135,7 +142,7 @@ export function AdmissionFormModal({
           overflow-hidden flex flex-col
         "
       >
-        {/* Header compacto */}
+        {/* Header */}
         <DialogHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
           <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900">
             {isEdit ? 'Editar Aspirante' : 'Nuevo Aspirante'}
@@ -145,27 +152,20 @@ export function AdmissionFormModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Body - Sin scroll, todo visible */}
+        {/* Body */}
         <div className="flex-1 px-4 sm:px-6 py-4 sm:py-6 min-h-0">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="h-full">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-4 lg:gap-x-6 gap-y-4 sm:gap-y-5 h-full">
-                
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 sm:gap-x-6 lg:gap-x-8 gap-y-5 sm:gap-y-6 h-full">
                 {/* Nombre */}
                 <FormField
                   control={form.control}
                   name="nombre"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                        Nombre *
-                      </FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-gray-700">Nombre *</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          placeholder="Nombre" 
-                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
-                        />
+                        <Input {...field} placeholder="Nombre" className="h-10 rounded-lg text-sm" />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -177,16 +177,10 @@ export function AdmissionFormModal({
                   control={form.control}
                   name="apellidoPaterno"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                        Apellido Paterno *
-                      </FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-gray-700">Apellido Paterno *</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          placeholder="Apellido paterno" 
-                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
-                        />
+                        <Input {...field} placeholder="Apellido paterno" className="h-10 rounded-lg text-sm" />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -198,16 +192,10 @@ export function AdmissionFormModal({
                   control={form.control}
                   name="apellidoMaterno"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                        Apellido Materno *
-                      </FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-gray-700">Apellido Materno *</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          placeholder="Apellido materno" 
-                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
-                        />
+                        <Input {...field} placeholder="Apellido materno" className="h-10 rounded-lg text-sm" />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -219,16 +207,10 @@ export function AdmissionFormModal({
                   control={form.control}
                   name="fechaNacimiento"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                        Fecha Nacimiento *
-                      </FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-gray-700">Fecha Nacimiento *</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="date" 
-                          {...field} 
-                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
-                        />
+                        <Input type="date" {...field} className="h-10 rounded-lg text-sm" />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -240,13 +222,11 @@ export function AdmissionFormModal({
                   control={form.control}
                   name="personaGeneroId"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                        Género *
-                      </FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-gray-700">Género *</FormLabel>
                       <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                         <FormControl>
-                          <SelectTrigger className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400">
+                          <SelectTrigger className="h-10 rounded-lg text-sm">
                             <SelectValue placeholder="Género" />
                           </SelectTrigger>
                         </FormControl>
@@ -266,16 +246,10 @@ export function AdmissionFormModal({
                   control={form.control}
                   name="calle"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                        Calle *
-                      </FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-gray-700">Calle *</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          placeholder="Calle" 
-                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
-                        />
+                        <Input {...field} placeholder="Calle" className="h-10 rounded-lg text-sm" />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -287,16 +261,10 @@ export function AdmissionFormModal({
                   control={form.control}
                   name="numero"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                        Número *
-                      </FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-gray-700">Número *</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          placeholder="Número" 
-                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
-                        />
+                        <Input {...field} placeholder="Número" className="h-10 rounded-lg text-sm" />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -308,10 +276,8 @@ export function AdmissionFormModal({
                   control={form.control}
                   name="codigoPostalId"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                        Código Postal (ID) *
-                      </FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-gray-700">Código Postal (ID) *</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -319,7 +285,7 @@ export function AdmissionFormModal({
                           onChange={(e) => field.onChange(Number(e.target.value))}
                           min={1}
                           placeholder="C.P."
-                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+                          className="h-10 rounded-lg text-sm"
                         />
                       </FormControl>
                       <FormMessage className="text-xs" />
@@ -327,14 +293,14 @@ export function AdmissionFormModal({
                   )}
                 />
 
-                {/* Plan de Estudios */}
+                {/* Programa (opcional) */}
                 <FormField
                   control={form.control}
-                  name="planEstudiosId"
+                  name="programaId"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                        Plan Estudios (ID)
+                    <FormItem className="space-y-2 md:col-span-2">
+                      <FormLabel className="text-sm font-medium text-gray-700">
+                        Programa (ID) <span className="text-xs text-gray-500">(opcional)</span>
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -344,8 +310,8 @@ export function AdmissionFormModal({
                             field.onChange(e.target.value === '' ? undefined : Number(e.target.value))
                           }
                           min={1}
-                          placeholder="Plan"
-                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+                          placeholder="Ej. 4"
+                          className="h-10 rounded-lg text-sm"
                         />
                       </FormControl>
                       <FormMessage className="text-xs" />
@@ -353,45 +319,31 @@ export function AdmissionFormModal({
                   )}
                 />
 
-                {/* Email - Campo más ancho */}
+                {/* Email - Ancho */}
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
-                    <FormItem className="space-y-1 col-span-2 sm:col-span-3 lg:col-span-2">
-                      <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                        Correo Electrónico *
-                      </FormLabel>
+                    <FormItem className="space-y-2 col-span-2 sm:col-span-3 lg:col-span-2">
+                      <FormLabel className="text-sm font-medium text-gray-700">Correo Electrónico *</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="email" 
-                          {...field} 
-                          placeholder="correo@ejemplo.com" 
-                          className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
-                        />
+                        <Input type="email" {...field} placeholder="correo@ejemplo.com" className="h-10 rounded-lg text-sm" />
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
 
-                {/* Password - solo para crear, campo más ancho */}
+                {/* Password - solo crear */}
                 {!isEdit && (
                   <FormField
                     control={form.control}
                     name="password"
                     render={({ field }) => (
-                      <FormItem className="space-y-1 col-span-2 sm:col-span-3 lg:col-span-2">
-                        <FormLabel className="text-xs sm:text-sm font-medium text-gray-700">
-                          Contraseña *
-                        </FormLabel>
+                      <FormItem className="space-y-2 col-span-2 sm:col-span-3 lg:col-span-2">
+                        <FormLabel className="text-sm font-medium text-gray-700">Contraseña *</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="password" 
-                            {...field} 
-                            placeholder="••••••••" 
-                            className="h-8 sm:h-10 rounded-lg text-sm border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-200" 
-                          />
+                          <Input type="password" {...field} placeholder="••••••••" className="h-10 rounded-lg text-sm" />
                         </FormControl>
                         <FormMessage className="text-xs" />
                       </FormItem>
@@ -403,26 +355,27 @@ export function AdmissionFormModal({
           </Form>
         </div>
 
-        {/* Footer compacto */}
+        {/* Footer */}
         <DialogFooter className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50/50 flex-shrink-0">
           <div className="flex gap-3 sm:gap-4 w-full sm:w-auto sm:ml-auto">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onClose} 
-              className="h-9 sm:h-10 px-4 sm:px-6 rounded-lg border-gray-300 hover:bg-gray-50 text-sm font-medium flex-1 sm:flex-none"
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="h-10 px-5 rounded-lg border-gray-300 hover:bg-gray-50 text-sm font-medium flex-1 sm:flex-none"
             >
               Cancelar
             </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting} 
+            <Button
+              type="submit"
+              disabled={isSubmitting}
               onClick={form.handleSubmit(handleSubmit)}
-              className="h-10 sm:h-11 px-4 sm:px-6 rounded-lg bg-black hover:bg-gray-800 text-sm font-medium flex-1 sm:flex-none min-w-[120px] sm:min-w-[140px]"
+              className="h-11 px-5 rounded-lg text-sm font-medium flex-1 sm:flex-none min-w-[140px]
+             bg-black text-white hover:bg-black"  /* Fondo blanco, texto negro */
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 border-2 border-black border-t-black rounded-full animate-spin" />
+                  <div className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin" />
                   <span className="hidden sm:inline">Guardando...</span>
                   <span className="sm:hidden">...</span>
                 </div>

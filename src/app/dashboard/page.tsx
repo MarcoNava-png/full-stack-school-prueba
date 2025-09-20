@@ -30,7 +30,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto w-full">
+    <div className="p-4 sm:p-6 space-y-6 mx-auto w-full">
       <div className="px-2 sm:px-0">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Bienvenido, {user?.NombreUsuario || "Usuario"}</h1>
         <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">Aquí tienes un resumen de tu actividad reciente.</p>

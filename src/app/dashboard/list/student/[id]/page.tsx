@@ -12,42 +12,32 @@ import { useParams } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7169";
 
-type StudentApi = any; // <-- tipa según tu DTO real si quieres
+type StudentApi = {
+  idEstudiante: number;
+  matricula: string;
+  nombreCompleto: string;
+  telefono: string | null;
+  planEstudios: string;
+  materias?: string[];
+};
+
 type StudentView = {
-  id: string;
-  img?: string | null;
-  name: string;
-  surname: string;
-  bloodType?: string | null;
-  birthday?: string | null;
-  email?: string | null;
-  phone?: string | null;
-  class?: { id: string; name: string; _count?: { lessons: number } };
+  id: number;
+  matricula: string;
+  nombreCompleto: string;
+  telefono: string | null;
+  planEstudios: string;
+  materias: string[];
 };
 
 function mapToView(s: StudentApi): StudentView {
-  // Intenta armar nombre y apellidos desde distintos posibles campos
-  const fullName: string =
-    s.fullName ??
-    [s.firstName ?? s.name, s.lastName ?? s.surname].filter(Boolean).join(" ");
-
-  const [first, ...rest] = (fullName ?? "").trim().split(/\s+/);
-  const surname = rest.join(" ");
-
   return {
-    id: s.id,
-    img: s.img ?? s.photoUrl ?? null,
-    name: first ?? "",
-    surname: surname ?? "",
-    bloodType: s.bloodType ?? null,
-    birthday: s.birthDate ?? s.birthday ?? null,
-    email: s.email ?? null,
-    phone: s.phone ?? null,
-    class: s.class ?? s.group ?? s.classroom ?? {
-      id: s.classId ?? "",
-      name: s.className ?? "",
-      _count: { lessons: s.lessonsCount ?? 0 },
-    },
+    id: s.idEstudiante,
+    matricula: s.matricula,
+    nombreCompleto: s.nombreCompleto,
+    telefono: s.telefono,
+    planEstudios: s.planEstudios,
+    materias: s.materias ?? [],
   };
 }
 
@@ -67,7 +57,7 @@ export default function SingleStudentPage() {
 
         if (!id) return;
 
-        const res = await fetch(`${API_URL}/api/students/${id}`, {
+        const res = await fetch(`http://localhost:7169/api/estudiantes/${id}`, {
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -80,8 +70,8 @@ export default function SingleStudentPage() {
           return;
         }
 
-        const json = await res.json(); // { data: ... }
-        setStudent(mapToView(json.data ?? json));
+        const json = await res.json();
+        setStudent(mapToView(json));
       } catch {
         setStudent(null);
       } finally {
@@ -97,138 +87,53 @@ export default function SingleStudentPage() {
   return (
     <div className="flex-1 p-4 flex flex-col gap-4 xl:flex-row">
       {/* LEFT */}
-      <div className="w-full xl:w-2/3">
-        {/* TOP */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* USER INFO CARD */}
-          <div className="bg-lamaSky py-6 px-4 rounded-md flex-1 flex gap-4">
-            <div className="w-1/3">
-              <Image
-                src={student.img || "/Avatar.png"}
-                alt=""
-                width={144}
-                height={144}
-                className="w-36 h-36 rounded-full object-cover"
-              />
+      <div className="w-full xl:w-2/3 flex gap-4">
+        {/* USER INFO CARD */}
+        <div className="bg-[#233f6a] text-white py-6 px-4 rounded-md flex flex-col items-center min-w-[220px] max-w-[220px]">
+          <Image
+            src={"/Avatar.png"}
+            alt=""
+            width={80}
+            height={80}
+            className="w-20 h-20 rounded-full object-cover mb-4"
+          />
+          <h1 className="text-lg font-semibold text-left w-full break-words">
+            {student.nombreCompleto}
+          </h1>
+          <div className="mt-4 w-full text-sm">
+            <div className="mb-2">
+              Matrícula:{" "}
+              <span className="font-mono">{student.matricula}</span>
             </div>
-            <div className="w-2/3 flex flex-col justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <h1 className="text-xl font-semibold">
-                  {`${student.name} ${student.surname}`.trim()}
-                </h1>
-                {role === "admin" && (
-                  <FormContainer table="student" type="update" data={student} />
-                )}
-              </div>
-              <p className="text-sm text-gray-500">
-                {/* Puedes reemplazar esto por biografía/notas si tu API lo trae */}
-                Información general del estudiante.
-              </p>
-              <div className="flex items-center justify-between gap-2 flex-wrap text-xs font-medium">
-                <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                  <Image src="/blood.png" alt="" width={14} height={14} />
-                  <span>{student.bloodType ?? "-"}</span>
-                </div>
-                <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                  <Image src="/date.png" alt="" width={14} height={14} />
-                  <span>
-                    {student.birthday
-                      ? new Intl.DateTimeFormat("es-MX").format(
-                          new Date(student.birthday)
-                        )
-                      : "-"}
-                  </span>
-                </div>
-                <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                  <Image src="/mail.png" alt="" width={14} height={14} />
-                  <span>{student.email ?? "-"}</span>
-                </div>
-                <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                  <Image src="/phone.png" alt="" width={14} height={14} />
-                  <span>{student.phone ?? "-"}</span>
-                </div>
-              </div>
+            <div className="flex items-center gap-2 mb-2">
+              <span>
+                <svg
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  className="inline-block mr-1"
+                >
+                  <path d="M3 5a5 5 0 1 1 10 0c0 2.5-2.5 6-5 6s-5-3.5-5-6zm5-3a3 3 0 0 0-3 3c0 1.5 1.5 4 3 4s3-2.5 3-4a3 3 0 0 0-3-3z" />
+                </svg>
+              </span>
+              {student.telefono ?? "-"}
             </div>
-          </div>
-
-          {/* SMALL CARDS */}
-          <div className="flex-1 flex gap-4 justify-between flex-wrap">
-            {/* CARD */}
-            <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-              <Image
-                src="/singleAttendance.png"
-                alt=""
-                width={24}
-                height={24}
-                className="w-6 h-6"
-              />
-              <Suspense fallback="loading...">
-                <StudentAttendanceCard id={student.id} />
-              </Suspense>
-            </div>
-
-            {/* CARD */}
-            <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-              <Image
-                src="/singleBranch.png"
-                alt=""
-                width={24}
-                height={24}
-                className="w-6 h-6"
-              />
-              <div>
-                <h1 className="text-xl font-semibold">
-                  {(student.class?.name?.charAt(0) ?? "-") + "th"}
-                </h1>
-                <span className="text-sm text-gray-400">Grade</span>
-              </div>
-            </div>
-
-            {/* CARD */}
-            <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-              <Image
-                src="/singleLesson.png"
-                alt=""
-                width={24}
-                height={24}
-                className="w-6 h-6"
-              />
-              <div>
-                <h1 className="text-xl font-semibold">
-                  {student.class?._count?.lessons ?? 0}
-                </h1>
-                <span className="text-sm text-gray-400">Lessons</span>
-              </div>
-            </div>
-
-            {/* CARD */}
-            <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-              <Image
-                src="/singleClass.png"
-                alt=""
-                width={24}
-                height={24}
-                className="w-6 h-6"
-              />
-              <div>
-                <h1 className="text-xl font-semibold">
-                  {student.class?.name ?? "-"}
-                </h1>
-                <span className="text-sm text-gray-400">Class</span>
-              </div>
+            <div>
+              Plan de estudios: <span>{student.planEstudios}</span>
             </div>
           </div>
         </div>
-
-        {/* BOTTOM */}
-        <div className="mt-4 bg-white rounded-md p-4 h-[800px]">
-          <h1>Student&apos;s Schedule</h1>
-          {student.class?.id ? (
-            <BigCalendarContainer type="classId" id={student.class.id} />
+        {/* Materias */}
+        <div className="bg-white p-6 rounded-md flex-1">
+          <h2 className="font-semibold mb-2">Materias</h2>
+          {student.materias.length > 0 ? (
+            <ul className="list-disc pl-6">
+              {student.materias.map((m, idx) => (
+                <li key={idx}>{m}</li>
+              ))}
+            </ul>
           ) : (
-            <div className="text-sm text-gray-500 mt-2">
-              Sin clase asignada.
-            </div>
+            <span className="text-gray-500">Sin materias asignadas.</span>
           )}
         </div>
       </div>
@@ -280,3 +185,5 @@ export default function SingleStudentPage() {
     </div>
   );
 }
+   
+         
